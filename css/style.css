@@ -1,0 +1,359 @@
+/* ==========================================================================
+   Estilos Customizados - Formulário Fuzzy-AHP
+   Seleção de Sítios para Armazenamento de CO2 em Cavernas de Sal
+   (Sem inline styles no HTML - 100% gerenciado via CSS)
+   ========================================================================== */
+
+:root {
+  --primary-accent: #0f4c81;
+  --primary-hover: #0b3860;
+  --secondary-accent: #3a506b;
+  --success-color: #198754;
+  --card-bg-answered: #f4fbf7;
+  --card-border-answered: #82c79f;
+  --progress-percentage: 0%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: #edf2f7;
+  color: #2b2d42;
+  padding-bottom: 90px;
+}
+
+/* --------------------------------------------------------------------------
+   Cabeçalho Principal (Hero)
+   -------------------------------------------------------------------------- */
+.hero-section {
+  background: linear-gradient(135deg, #0b2545 0%, #134074 50%, #1d3557 100%);
+  color: #ffffff;
+  padding: 3rem 1.5rem 2.75rem;
+  border-radius: 0 0 1.5rem 1.5rem;
+  margin-bottom: 2.5rem;
+  box-shadow: 0 10px 30px rgba(11, 37, 69, 0.2);
+}
+
+.hero-badge {
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(6px);
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+
+.hero-lead {
+  max-width: 860px;
+  opacity: 0.95;
+}
+
+.main-container {
+  max-width: 960px;
+}
+
+/* --------------------------------------------------------------------------
+   Barra de Progresso Fixa / Sticky
+   -------------------------------------------------------------------------- */
+.sticky-progress-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid #cbd5e1;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  border-radius: 0.75rem;
+  margin-bottom: 2rem;
+  transition: all 0.3s ease;
+}
+
+.custom-progress-track {
+  height: 12px;
+  background-color: #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.ahp-progress-bar-fill {
+  width: var(--progress-percentage, 0%);
+  transition: width 0.35s ease-in-out;
+}
+
+/* --------------------------------------------------------------------------
+   Containeres de Etapas (Visual Separation)
+   -------------------------------------------------------------------------- */
+.step-container {
+  border-radius: 1.25rem;
+  padding: 2rem;
+  margin-bottom: 2.25rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Etapa 1: Contextualização e Guia de Critérios */
+.step-container-guide {
+  background: linear-gradient(180deg, #f8faff 0%, #eef4fc 100%);
+  border-left: 6px solid #134074;
+}
+
+/* Etapa 2: Identificação do Especialista */
+.step-container-evaluator {
+  background: #ffffff;
+  border-left: 6px solid #0f4c81;
+}
+
+/* Etapa 3: Avaliações Paritárias Fuzzy-AHP */
+.step-container-comparisons {
+  background: #eef2f6;
+  border-left: 6px solid #0d6efd;
+}
+
+/* Etapa 4: Comentários & Finalização */
+.step-container-finish {
+  background: #ffffff;
+  border-left: 6px solid #198754;
+}
+
+/* Cabeçalho de Etapa */
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding-bottom: 1rem;
+}
+
+.step-number-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--primary-accent);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(15, 76, 129, 0.3);
+}
+
+.step-number-finish {
+  background: var(--success-color);
+  box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3);
+}
+
+.step-title {
+  margin: 0;
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 1.25rem;
+}
+
+.step-subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+/* --------------------------------------------------------------------------
+   Cards de Comparações Paritárias
+   -------------------------------------------------------------------------- */
+.criteria-card {
+  transition: all 0.25s ease-in-out;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.criteria-card:hover {
+  box-shadow: 0 10px 28px rgba(15, 76, 129, 0.09);
+  border-color: #94a3b8;
+}
+
+.criteria-card.is-completed {
+  border-color: var(--card-border-answered);
+  background-color: var(--card-bg-answered);
+}
+
+.comparison-header {
+  border-bottom: 1px solid #f1f5f9;
+  padding: 1rem 1.25rem;
+}
+
+.badge-status {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+}
+
+/* --------------------------------------------------------------------------
+   Radio Button Customizado
+   -------------------------------------------------------------------------- */
+.custom-radio-card {
+  display: block;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+
+.custom-radio-card input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.radio-content {
+  border: 2px solid #e2e8f0;
+  border-radius: 0.65rem;
+  padding: 0.9rem 1.2rem;
+  transition: all 0.2s ease;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.custom-radio-card:hover .radio-content {
+  border-color: #94a3b8;
+  background-color: #f8fafc;
+}
+
+.custom-radio-card input[type="radio"]:checked + .radio-content {
+  border-color: var(--primary-accent);
+  background-color: #f0f7ff;
+  color: var(--primary-accent);
+  box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.15);
+}
+
+.radio-indicator {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.custom-radio-card input[type="radio"]:checked + .radio-content .radio-indicator {
+  border-color: var(--primary-accent);
+  background-color: var(--primary-accent);
+}
+
+.custom-radio-card input[type="radio"]:checked + .radio-content .radio-indicator::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   Destaque Dinâmico das Perguntas
+   -------------------------------------------------------------------------- */
+.dynamic-question-label {
+  transition: color 0.3s ease;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.dynamic-question-label .highlight-crit {
+  color: var(--primary-accent);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   Pílulas de Referência dos Critérios
+   -------------------------------------------------------------------------- */
+.criteria-reference-pill {
+  padding: 0.75rem 1rem;
+  border-radius: 0.65rem;
+  background: #ffffff;
+  border-left: 5px solid #64748b;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.criteria-pill-a {
+  border-left-color: #6f42c1;
+}
+
+.criteria-pill-b {
+  border-left-color: #b02a37;
+}
+
+.criteria-pill-c {
+  border-left-color: #997404;
+}
+
+.criteria-pill-d {
+  border-left-color: #087990;
+}
+
+.criteria-pill-e {
+  border-left-color: #495057;
+}
+
+.criteria-pill-f {
+  border-left-color: #146c43;
+}
+
+/* --------------------------------------------------------------------------
+   Badges de Critérios
+   -------------------------------------------------------------------------- */
+.badge-criteria-a {
+  background-color: #6f42c1;
+  color: #ffffff;
+}
+
+.badge-criteria-b {
+  background-color: #b02a37;
+  color: #ffffff;
+}
+
+.badge-criteria-c {
+  background-color: #997404;
+  color: #ffffff;
+}
+
+.badge-criteria-d {
+  background-color: #087990;
+  color: #ffffff;
+}
+
+.badge-criteria-e {
+  background-color: #495057;
+  color: #ffffff;
+}
+
+.badge-criteria-f {
+  background-color: #146c43;
+  color: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   Modal de Sucesso
+   -------------------------------------------------------------------------- */
+.modal-success-icon {
+  font-size: 4rem;
+}
+
+/* --------------------------------------------------------------------------
+   Animações
+   -------------------------------------------------------------------------- */
+.fade-in {
+  animation: fadeIn 0.4s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}

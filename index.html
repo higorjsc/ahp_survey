@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pesquisa Fuzzy-AHP | Armazenamento de CO₂ em Cavernas de Sal</title>
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Estilos Customizados (100% sem inline styles no HTML) -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Hero / Cabeçalho Principal -->
+  <header class="hero-section text-center">
+    <div class="container">
+      <span class="badge hero-badge px-3 py-2 rounded-pill mb-3">
+        <i class="bi bi-geo-alt-fill me-1"></i> Sítios de Armazenamento de CO₂ (CCUS)
+      </span>
+      <h1 class="display-6 fw-bold mb-3">
+        Seleção de Sítios para Armazenamento de CO₂ em Cavernas de Sal
+      </h1>
+      <p class="lead mb-4 mx-auto text-light hero-lead">
+        Questionário de Julgamento Paritário de Especialistas (Método Fuzzy-AHP). Avalie a importância relativa entre os macrocritérios fundamentais para priorização de sítios geológicos.
+      </p>
+
+      <!-- Botões de Ajuda Rápida -->
+      <div class="d-flex justify-content-center gap-2 flex-wrap">
+        <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#criteriaReferenceCollapse" aria-expanded="false" aria-controls="criteriaReferenceCollapse">
+          <i class="bi bi-info-circle me-1"></i> Ver Descrição dos Critérios (A a F)
+        </button>
+        <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#saatyScaleCollapse" aria-expanded="false" aria-controls="saatyScaleCollapse">
+          <i class="bi bi-card-checklist me-1"></i> Guia da Escala de Julgamento
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Container Principal -->
+  <main class="container main-container mb-5">
+
+    <!-- Barra de Progresso Fixa / Sticky -->
+    <div class="sticky-progress-bar shadow-sm">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="small fw-semibold text-secondary">
+          <i class="bi bi-check2-circle me-1 text-primary"></i>Progresso do Questionário:
+        </span>
+        <span class="small fw-bold text-primary" id="ahpProgressText">
+          0 de 15 comparações concluídas (0%)
+        </span>
+      </div>
+      <div class="progress custom-progress-track">
+        <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary ahp-progress-bar-fill" 
+             id="ahpProgressBar" 
+             role="progressbar" 
+             aria-valuenow="0" 
+             aria-valuemin="0" 
+             aria-valuemax="100">
+        </div>
+      </div>
+    </div>
+
+    <!-- Área Global de Alertas de Validação -->
+    <div id="validationAlert"></div>
+
+    <!-- Formulário Formcarry -->
+    <form id="ahpForm" 
+          action="https://formcarry.com/s/dCwN02ZnToR" 
+          method="POST" 
+          enctype="multipart/form-data">
+
+      <!-- ====================================================================
+           ETAPA 1: Contextualização e Guia de Critérios
+           ==================================================================== -->
+      <section class="step-container step-container-guide">
+        <div class="step-header">
+          <div class="step-number-badge">1</div>
+          <div>
+            <h4 class="step-title">Etapa 1: Contexto e Critérios em Avaliação</h4>
+            <p class="step-subtitle">Visão geral do objetivo e dos 6 macrocritérios extraídos do modelo geológico</p>
+          </div>
+        </div>
+
+        <p class="text-secondary small mb-3">
+          O objetivo desta etapa é avaliar a importância relativa dos macrocritérios para a escolha de cavernas em rochas salinas adequadas para estocagem geológica de CO₂. Clique abaixo para consultar as definições sempre que necessário:
+        </p>
+
+        <!-- Seções Recolhíveis de Apoio -->
+        <div class="collapse show mb-3" id="criteriaReferenceCollapse">
+          <div class="card card-body shadow-sm border-0 bg-white">
+            <h6 class="fw-bold text-primary mb-3">
+              <i class="bi bi-diagram-3-fill me-2"></i>Macrocritérios Analisados:
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="criteria-reference-pill criteria-pill-a">
+                  <strong>A. Formação Geológica</strong>
+                  <div class="small text-muted">Profundidade da formação, espessura útil, continuidade lateral e vertical, volume de intercamadas e heterogeneidades.</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="criteria-reference-pill criteria-pill-b">
+                  <strong>B. Reações Química</strong>
+                  <div class="small text-muted">Teor de halita, impurezas insolúveis, sais altamente solúveis / baixa densidade, heterogeneidade composicional.</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="criteria-reference-pill criteria-pill-c">
+                  <strong>C. Geomecânica da Formação</strong>
+                  <div class="small text-muted">Regime de tensões in situ, distância a falhas e bordas da camada, fraturamento e permeabilidade, gradiente geotermal.</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="criteria-reference-pill criteria-pill-d">
+                  <strong>D. Características das Intercamadas</strong>
+                  <div class="small text-muted">Continuidade lateral, espessura, fraturamento e permeabilidade, resistência da rocha.</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="criteria-reference-pill criteria-pill-e">
+                  <strong>E. Rocha selante secundária</strong>
+                  <div class="small text-muted">Continuidade lateral, espessura, fraturamento e permeabilidade, integridade do selo secundário.</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="criteria-reference-pill criteria-pill-f">
+                  <strong>F. Logística e condições do sítio</strong>
+                  <div class="small text-muted">Distância às fontes de CO₂, infraestrutura de transporte de duto/naval, infraestrutura operacional.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="collapse mb-2" id="saatyScaleCollapse">
+          <div class="card card-body shadow-sm border-0 bg-white">
+            <h6 class="fw-bold text-primary mb-2">
+              <i class="bi bi-sliders me-2"></i>Instruções para o Julgamento Paritário:
+            </h6>
+            <ol class="small text-secondary mb-2">
+              <li><strong>Pergunta 1:</strong> Selecione qual dos dois critérios em comparação você julga prioritário ou mais relevante.</li>
+              <li><strong>Pergunta 2:</strong> Selecione o grau verbal de dominância do critério escolhido:
+                <ul class="mt-1 mb-0">
+                  <li><em>Igual importância</em></li>
+                  <li><em>Moderadamente superior</em></li>
+                  <li><em>Superior</em></li>
+                  <li><em>Muito Superior</em></li>
+                  <li><em>Extremamente superior</em></li>
+                </ul>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           ETAPA 2: Identificação do Especialista
+           ==================================================================== -->
+      <section class="step-container step-container-evaluator">
+        <div class="step-header">
+          <div class="step-number-badge">2</div>
+          <div>
+            <h4 class="step-title">Etapa 2: Identificação do Especialista</h4>
+            <p class="step-subtitle">Informações para validação acadêmica do painel de especialistas</p>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="evaluatorName" class="form-label fw-semibold">Nome Completo *</label>
+            <input type="text" class="form-control" id="evaluatorName" name="nome_especialista" placeholder="Ex: Dra. Maria Silva" required>
+          </div>
+          <div class="col-md-6">
+            <label for="evaluatorEmail" class="form-label fw-semibold">E-mail Profissional *</label>
+            <input type="email" class="form-control" id="evaluatorEmail" name="email" placeholder="seu.email@instituicao.br" required>
+          </div>
+          <div class="col-md-6">
+            <label for="evaluatorOrg" class="form-label fw-semibold">Instituição / Organização</label>
+            <input type="text" class="form-control" id="evaluatorOrg" name="instituicao" placeholder="Ex: Universidade, Petrobras, ANP">
+          </div>
+          <div class="col-md-6">
+            <label for="evaluatorRole" class="form-label fw-semibold">Área de Atuação / Especialidade</label>
+            <input type="text" class="form-control" id="evaluatorRole" name="area_atuacao" placeholder="Ex: Geomecânica, Estratigrafia, Armazenamento Geológico">
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           ETAPA 3: Avaliações Paritárias Fuzzy-AHP (15 Comparações)
+           ==================================================================== -->
+      <section class="step-container step-container-comparisons">
+        <div class="step-header">
+          <div class="step-number-badge">3</div>
+          <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2">
+            <div>
+              <h4 class="step-title">Etapa 3: Julgamento Paritário dos Critérios</h4>
+              <p class="step-subtitle">Realize a comparação 1 a 1 para todas as combinações possíveis entre os critérios A a F</p>
+            </div>
+            <span class="badge bg-primary px-3 py-2">Total: 15 comparações</span>
+          </div>
+        </div>
+
+        <!-- Container onde o JavaScript injeta os 15 cards com visual destacado -->
+        <div id="pairwiseComparisonsContainer"></div>
+      </section>
+
+      <!-- ====================================================================
+           ETAPA 4: Comentários Adicionais e Envio
+           ==================================================================== -->
+      <section class="step-container step-container-finish">
+        <div class="step-header">
+          <div class="step-number-badge step-number-finish">4</div>
+          <div>
+            <h4 class="step-title">Etapa 4: Comentários e Submissão</h4>
+            <p class="step-subtitle">Observações técnicas opcionais e envio da avaliação</p>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label for="evaluatorNotes" class="form-label fw-semibold text-dark">
+            Comentários ou Justificativas Adicionais (Opcional):
+          </label>
+          <textarea class="form-control" 
+                    id="evaluatorNotes" 
+                    name="message" 
+                    rows="3" 
+                    placeholder="Adicione considerações sobre particularidades geológicas, limitações ou observações que julgar relevantes..."></textarea>
+        </div>
+
+        <div class="text-center pt-2">
+          <button type="submit" id="submitBtn" class="btn btn-success btn-lg px-5 py-3 shadow">
+            <i class="bi bi-send-fill me-2"></i> Enviar Avaliações
+          </button>
+          <div class="text-muted small mt-2">
+            Os dados serão enviados de forma íntegra em formato textual, sem conversão numérica.
+          </div>
+        </div>
+      </section>
+
+    </form>
+
+  </main>
+
+  <!-- Rodapé -->
+  <footer class="text-center py-4 text-muted small">
+    <div class="container">
+      Pesquisa Científica &bull; Fuzzy-AHP para Armazenamento de CO₂ em Cavernas de Sal &bull; Critérios A a F
+    </div>
+  </footer>
+
+  <!-- Modal de Sucesso -->
+  <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-body text-center p-5">
+          <div class="text-success mb-3 modal-success-icon">
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+          <h3 class="fw-bold mb-3" id="successModalLabel">Respostas Enviadas com Sucesso!</h3>
+          <p class="text-muted mb-4">
+            Seus julgamentos paritários foram registrados com sucesso. Agradecemos imensamente por sua valiosa contribuição nesta pesquisa sobre armazenamento geológico de CO₂ em cavernas de sal.
+          </p>
+          <button type="button" class="btn btn-success px-4 py-2" onclick="location.reload();">
+            <i class="bi bi-arrow-repeat me-1"></i> Preencher Nova Avaliação
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- jQuery (opcional/compatibilidade) -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <!-- Lógica da Pesquisa Fuzzy-AHP -->
+  <script src="js/criteria.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

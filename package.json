@@ -1,0 +1,18 @@
+{
+  "name": "ahp-cave-survey",
+  "version": "1.0.0",
+  "description": "Formulário Fuzzy-AHP para avaliação paritária de critérios para seleção de sítios de armazenamento de CO2 em cavernas de sal",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "keywords": [
+    "fuzzy-ahp",
+    "ahp",
+    "co2-storage",
+    "cavern-survey",
+    "formcarry"
+  ],
+  "author": "",
+  "license": "MIT"
+}
