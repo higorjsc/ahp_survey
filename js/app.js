@@ -138,7 +138,7 @@ function renderComparisonCards(pairs, container) {
               ${SAATY_SCALE_OPTIONS.map((opt) => `<option value="${opt}">${opt}</option>`).join("")}
             </select>
             <div class="form-text text-muted mt-2">
-              Valores textuais da escala fundamental de Saaty (sem conversão numérica).
+              Valores textuais da escala fundamental de Saaty.
             </div>
           </div>
         </div>
