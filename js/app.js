@@ -49,8 +49,8 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // Formulário 100% completo -> Enviar para o Formcarry
-    submitToFormcarry(form);
+    // Formulário 100% completo -> Enviar dados
+    submitSurveyForm(form);
   });
 });
 
@@ -277,9 +277,9 @@ function showAlert(message, type = "danger") {
 }
 
 /**
- * Submete o formulário à API do Formcarry
+ * Submete o formulário à API (Web3Forms) com suporte a feedback assíncrono
  */
-function submitToFormcarry(form) {
+function submitSurveyForm(form) {
   const submitBtn = document.getElementById("submitBtn");
   const originalBtnText = submitBtn.innerHTML;
 
@@ -290,17 +290,29 @@ function submitToFormcarry(form) {
   `;
 
   const formData = new FormData(form);
+  const object = Object.fromEntries(formData.entries());
+  const json = JSON.stringify(object);
 
   fetch(form.action, {
     method: "POST",
     headers: {
+      "Content-Type": "application/json",
       "Accept": "application/json"
     },
-    body: formData
+    body: json
   })
     .then(async (response) => {
-      const data = await response.json();
-      if (response.ok && (data.code === 200 || data.status === "success" || data.status === 200)) {
+      let data = null;
+      const text = await response.text();
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        if (text.includes("Form submitted successfully") || text.includes("success") || response.status === 200) {
+          data = { success: true };
+        }
+      }
+
+      if (response.ok && (data?.success === true || response.status === 200)) {
         showSuccessModal();
       } else {
         form.submit();

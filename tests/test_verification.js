@@ -69,12 +69,16 @@ requiredSteps.forEach(stepClass => {
 });
 console.log("✓ Todas as 4 etapas com containeres e backgrounds estilizados foram encontradas no HTML.");
 
-// 5. Verificar Formcarry action
-if (!html.includes('https://formcarry.com/s/dCwN02ZnToR')) {
-  console.error("ERRO: Action do Formcarry incorreta ou não encontrada.");
+// 5. Verificar Web3Forms action e access_key
+if (!html.includes('https://api.web3forms.com/submit')) {
+  console.error("ERRO: Action do Web3Forms incorreta ou não encontrada.");
   process.exit(1);
 }
-console.log("✓ Endpoint do Formcarry configurado corretamente.");
+if (!html.includes('b7fcd54a-0764-49b7-ab97-958c10fdb7f5')) {
+  console.error("ERRO: access_key do Web3Forms incorreta ou não encontrada.");
+  process.exit(1);
+}
+console.log("✓ Endpoint e access_key do Web3Forms configurados corretamente.");
 
 console.log("\nTodos os testes de validação passaram com 100% de sucesso!");
 

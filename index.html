@@ -66,11 +66,14 @@
     <!-- Área Global de Alertas de Validação -->
     <div id="validationAlert"></div>
 
-    <!-- Formulário Formcarry -->
+    <!-- Formulário Web3Forms -->
     <form id="ahpForm" 
-          action="https://formcarry.com/s/dCwN02ZnToR" 
-          method="POST" 
-          enctype="multipart/form-data">
+          action="https://api.web3forms.com/submit" 
+          method="POST">
+
+      <input type="hidden" name="access_key" value="b7fcd54a-0764-49b7-ab97-958c10fdb7f5">
+      <input type="hidden" name="subject" value="Nova Avaliação Fuzzy-AHP - Cavernas de Sal">
+      <input type="hidden" name="from_name" value="Pesquisa Fuzzy-AHP">
 
       <!-- ====================================================================
            ETAPA 1: Contextualização e Guia de Critérios
@@ -171,7 +174,7 @@
         <div class="row g-3">
           <div class="col-md-6">
             <label for="evaluatorName" class="form-label fw-semibold">Nome Completo *</label>
-            <input type="text" class="form-control" id="evaluatorName" name="nome_especialista" placeholder="Ex: Dra. Maria Silva" required>
+            <input type="text" class="form-control" id="evaluatorName" name="name" placeholder="Ex: Dra. Maria Silva" required>
           </div>
           <div class="col-md-6">
             <label for="evaluatorEmail" class="form-label fw-semibold">E-mail Profissional *</label>

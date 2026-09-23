@@ -5,14 +5,15 @@
   "main": "index.html",
   "scripts": {
     "start": "npx serve .",
-    "test": "node tests/test_verification.js"
+    "test": "node tests/test_verification.js",
+    "test:submit": "node tests/submit_test_submissions.js"
   },
   "keywords": [
     "fuzzy-ahp",
     "ahp",
     "co2-storage",
     "cavern-survey",
-    "formcarry"
+    "web3forms"
   ],
   "author": "",
   "license": "MIT"
