@@ -70,14 +70,13 @@ function getTimestamp() {
 function generateResponsesForSpecialist(specialistIndex) {
   const responses = [];
 
-  PAIRS.forEach((pair, pairIdx) => {
-    // Alterna escolha entre crit1 e crit2
-    const chooseFirst = ((specialistIndex + pairIdx) % 2 === 0);
+  PAIRS.forEach((pair) => {
+    // Escolha aleatória entre crit1 e crit2
+    const chooseFirst = Math.random() < 0.5;
     const chosenCrit = chooseFirst ? pair.crit1 : pair.crit2;
-    const otherCrit = chooseFirst ? pair.crit2 : pair.crit1;
 
-    // Seleciona uma das 5 opções verbais da escala
-    const scaleIndex = (specialistIndex * 2 + pairIdx) % SAATY_SCALE_OPTIONS.length;
+    // Seleção aleatória entre as opções da escala verbal de Saaty
+    const scaleIndex = Math.floor(Math.random() * SAATY_SCALE_OPTIONS.length);
     const chosenScale = SAATY_SCALE_OPTIONS[scaleIndex];
 
     responses.push({
