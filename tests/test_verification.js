@@ -4,8 +4,10 @@
 const fs = require('fs');
 const path = require('path');
 
+const rootDir = path.join(__dirname, '..');
+
 // 1. Ler index.html e verificar ausência de style="..."
-const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+const html = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf8');
 const inlineStyleMatches = html.match(/style\s*=\s*["'][^"']*["']/gi);
 if (inlineStyleMatches && inlineStyleMatches.length > 0) {
   console.error("ERRO: Encontrados atributos style inline no index.html:", inlineStyleMatches);
@@ -15,7 +17,7 @@ if (inlineStyleMatches && inlineStyleMatches.length > 0) {
 }
 
 // 2. Verificar criteria.js
-const { CRITERIA, SAATY_SCALE_OPTIONS, generatePairwiseCombinations } = require('./js/criteria.js');
+const { CRITERIA, SAATY_SCALE_OPTIONS, generatePairwiseCombinations } = require('../js/criteria.js');
 console.log(`✓ Critérios carregados: ${CRITERIA.length} (A a F)`);
 if (CRITERIA.length !== 6) {
   console.error("ERRO: Esperado 6 critérios.");
@@ -75,3 +77,4 @@ if (!html.includes('https://formcarry.com/s/dCwN02ZnToR')) {
 console.log("✓ Endpoint do Formcarry configurado corretamente.");
 
 console.log("\nTodos os testes de validação passaram com 100% de sucesso!");
+

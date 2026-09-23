@@ -125,9 +125,9 @@ function renderComparisonCards(pairs, container) {
           </div>
 
           <!-- Pergunta 2: Select com escala de Saaty textual -->
-          <div>
+          <div class="intensity-question-block is-disabled" id="intensity_block_${pairKey}">
             <label class="form-label dynamic-question-label text-dark mb-2" id="label_intensidade_${pairKey}">
-              O quão mais importante o critério selecionado é mais importante que o outro?
+              <i class="bi bi-lock-fill me-1 text-muted" id="lock_icon_${pairKey}"></i> O quão mais importante o critério selecionado é mais importante que o outro?
             </label>
             <select class="form-select form-select-lg saaty-select" 
                     id="select_intensidade_${pairKey}" 
@@ -137,8 +137,11 @@ function renderComparisonCards(pairs, container) {
               <option value="" disabled selected>Selecione o critério mais importante na pergunta acima primeiro...</option>
               ${SAATY_SCALE_OPTIONS.map((opt) => `<option value="${opt}">${opt}</option>`).join("")}
             </select>
-            <div class="form-text text-muted mt-2">
-              Valores textuais da escala fundamental de Saaty.
+            <div class="form-text text-muted mt-2 intensity-hint-disabled">
+              <i class="bi bi-info-circle me-1"></i> Responda à pergunta 1 acima para habilitar esta seleção.
+            </div>
+            <div class="form-text text-muted mt-2 intensity-hint-enabled">
+              Valores textuais da escala de Saaty (sem conversão numérica).
             </div>
           </div>
         </div>
@@ -160,20 +163,24 @@ function setupEventListeners(pairs) {
     const label = document.getElementById(`label_intensidade_${pairKey}`);
     const card = document.getElementById(`card_${pairKey}`);
     const statusBadge = document.getElementById(`status_${pairKey}`);
+    const intensityBlock = document.getElementById(`intensity_block_${pairKey}`);
 
     radios.forEach((radio) => {
       radio.addEventListener("change", function () {
         const checkedLabel = this.getAttribute("data-chosen");
         const uncheckedLabel = this.getAttribute("data-other");
 
+        // Desbloqueia visualmente o container do select
+        intensityBlock.classList.remove("is-disabled");
+
         // Atualização dinâmica do texto solicitada:
         // "O quão mais importante o critério {radio_checked_label} é mais importante que {radio_unchecked_label}?"
-        label.innerHTML = `O quão mais importante o critério <span class="highlight-crit">${checkedLabel}</span> é mais importante que <span class="highlight-crit">${uncheckedLabel}</span>?`;
+        label.innerHTML = `<i class="bi bi-unlock-fill me-1 text-primary"></i> O quão mais importante o critério <span class="highlight-crit">${checkedLabel}</span> é mais importante que <span class="highlight-crit">${uncheckedLabel}</span>?`;
 
         // Habilita o select
         select.disabled = false;
         if (!select.value) {
-          select.options[0].textContent = "Selecione o grau de importância textual...";
+          select.options[0].textContent = "Selecione a opção de importância...";
         }
 
         checkPairCompletion(pairKey, card, statusBadge, select);

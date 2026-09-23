@@ -4,7 +4,8 @@
   "description": "Formulário Fuzzy-AHP para avaliação paritária de critérios para seleção de sítios de armazenamento de CO2 em cavernas de sal",
   "main": "index.html",
   "scripts": {
-    "start": "npx serve ."
+    "start": "npx serve .",
+    "test": "node tests/test_verification.js"
   },
   "keywords": [
     "fuzzy-ahp",
