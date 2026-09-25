@@ -1,5 +1,5 @@
 /**
- * Teste automatizado de validação do formulário Fuzzy-AHP
+ * Teste automatizado de validação do formulário Fuzzy-AHP Multi-Step com Subcritérios
  */
 const fs = require('fs');
 const path = require('path');
@@ -13,25 +13,51 @@ if (inlineStyleMatches && inlineStyleMatches.length > 0) {
   console.error("ERRO: Encontrados atributos style inline no index.html:", inlineStyleMatches);
   process.exit(1);
 } else {
-  console.log("✓ index.html: Nenhum inline style encontrado.");
+  console.log("✓ index.html: Nenhum inline style encontrado (100% via CSS).");
 }
 
 // 2. Verificar criteria.js
-const { CRITERIA, SAATY_SCALE_OPTIONS, generatePairwiseCombinations } = require('../js/criteria.js');
+const {
+  CRITERIA,
+  SAATY_SCALE_OPTIONS,
+  SURVEY_STEPS,
+  generatePairwiseCombinations,
+  getAllSurveyPairs
+} = require('../js/criteria.js');
+
 console.log(`✓ Critérios carregados: ${CRITERIA.length} (A a F)`);
 if (CRITERIA.length !== 6) {
   console.error("ERRO: Esperado 6 critérios.");
   process.exit(1);
 }
 
-const pairs = generatePairwiseCombinations(CRITERIA);
-console.log(`✓ Comparações geradas: ${pairs.length} (esperado 15)`);
-if (pairs.length !== 15) {
-  console.error("ERRO: Esperado 15 pares.");
+// Verificar subcritérios de cada critério
+const expectedSubcounts = { A: 4, B: 4, C: 4, D: 4, E: 4, F: 3 };
+CRITERIA.forEach((crit) => {
+  const expected = expectedSubcounts[crit.code];
+  if (!crit.subcriteria || crit.subcriteria.length !== expected) {
+    console.error(`ERRO: Subcritérios de ${crit.code} esperados ${expected}, recebido ${crit.subcriteria?.length}`);
+    process.exit(1);
+  }
+  console.log(`  ✓ Critério ${crit.code} (${crit.name}): ${crit.subcriteria.length} subcritérios`);
+});
+
+// 3. Verificar etapas da pesquisa (9 steps)
+console.log(`✓ Etapas da pesquisa configuradas: ${SURVEY_STEPS.length} (esperado 9)`);
+if (SURVEY_STEPS.length !== 9) {
+  console.error("ERRO: Esperado 9 etapas no fluxo do questionário.");
   process.exit(1);
 }
 
-// 3. Verificar escala de Saaty / verbal options solicitada
+// 4. Verificar total de comparações paritárias
+const allPairs = getAllSurveyPairs();
+console.log(`✓ Total de pares de comparação: ${allPairs.length} (esperado 48)`);
+if (allPairs.length !== 48) {
+  console.error(`ERRO: Esperado 48 pares no total (15 globais + 6x5 + 3 = 48), recebido ${allPairs.length}`);
+  process.exit(1);
+}
+
+// 5. Verificar escala de Saaty / opções verbais
 const expectedScale = [
   "Igual importância",
   "Moderadamente superior",
@@ -52,24 +78,27 @@ expectedScale.forEach((opt, idx) => {
     process.exit(1);
   }
 });
-console.log("✓ As 5 opções verbais da escala correspondem exatamente à imagem fornecida.");
+console.log("✓ As 5 opções verbais da escala de Saaty conferem exatamente com a metodologia.");
 
-// 4. Verificar container de etapas no HTML
-const requiredSteps = [
-  'step-container-guide',
-  'step-container-evaluator',
-  'step-container-comparisons',
-  'step-container-finish'
-];
-requiredSteps.forEach(stepClass => {
-  if (!html.includes(stepClass)) {
-    console.error(`ERRO: Classe de etapa ${stepClass} não encontrada no HTML.`);
+// 6. Verificar todas as 9 views de steps no HTML
+for (let s = 1; s <= 9; s++) {
+  if (!html.includes(`id="stepView_${s}"`)) {
+    console.error(`ERRO: View do step ${s} (id="stepView_${s}") não encontrada no index.html.`);
     process.exit(1);
   }
-});
-console.log("✓ Todas as 4 etapas com containeres e backgrounds estilizados foram encontradas no HTML.");
+}
+console.log("✓ Todas as 9 views de etapas (id='stepView_1' a id='stepView_9') encontradas no HTML.");
 
-// 5. Verificar Web3Forms action e access_key
+// 7. Verificar containeres de matriz de comparação (etapas 2 a 8)
+for (let s = 2; s <= 8; s++) {
+  if (!html.includes(`id="matrixContainer_step_${s}"`)) {
+    console.error(`ERRO: Container de matriz do step ${s} (id="matrixContainer_step_${s}") não encontrado no index.html.`);
+    process.exit(1);
+  }
+}
+console.log("✓ Todos os containeres de matriz de comparações (steps 2 a 8) encontrados no HTML.");
+
+// 8. Verificar Web3Forms action e access_key
 if (!html.includes('https://api.web3forms.com/submit')) {
   console.error("ERRO: Action do Web3Forms incorreta ou não encontrada.");
   process.exit(1);
@@ -80,5 +109,6 @@ if (!html.includes('b7fcd54a-0764-49b7-ab97-958c10fdb7f5')) {
 }
 console.log("✓ Endpoint e access_key do Web3Forms configurados corretamente.");
 
-console.log("\nTodos os testes de validação passaram com 100% de sucesso!");
-
+console.log("\n========================================================");
+console.log("Todos os testes de validação passaram com 100% de sucesso!");
+console.log("========================================================\n");

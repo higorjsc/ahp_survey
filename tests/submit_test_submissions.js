@@ -7,11 +7,11 @@
  */
 
 const { execFileSync } = require('child_process');
-const { CRITERIA, SAATY_SCALE_OPTIONS, generatePairwiseCombinations } = require('../js/criteria.js');
+const { getAllSurveyPairs, SAATY_SCALE_OPTIONS } = require('../js/criteria.js');
 
 const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
 const ACCESS_KEY = "b7fcd54a-0764-49b7-ab97-958c10fdb7f5";
-const PAIRS = generatePairwiseCombinations(CRITERIA);
+const PAIRS = getAllSurveyPairs();
 const DELAY_SECONDS = 30;
 
 // 5 perfis completos de especialistas para teste

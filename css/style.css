@@ -1,7 +1,7 @@
 /* ==========================================================================
-   Estilos Customizados - Formulário Fuzzy-AHP
+   Estilos Customizados - Formulário Fuzzy-AHP Multi-Step
    Seleção de Sítios para Armazenamento de CO2 em Cavernas de Sal
-   (Sem inline styles no HTML - 100% gerenciado via CSS)
+   (100% livre de inline styles no HTML - Totalmente gerenciado via CSS)
    ========================================================================== */
 
 :root {
@@ -9,16 +9,24 @@
   --primary-hover: #0b3860;
   --secondary-accent: #3a506b;
   --success-color: #198754;
-  --card-bg-answered: #f4fbf7;
+  --card-bg-answered: #f6fcf8;
   --card-border-answered: #82c79f;
   --progress-percentage: 0%;
+
+  /* Cores Temáticas dos Critérios A a F */
+  --crit-a-color: #6f42c1;
+  --crit-b-color: #b02a37;
+  --crit-c-color: #997404;
+  --crit-d-color: #087990;
+  --crit-e-color: #495057;
+  --crit-f-color: #146c43;
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background-color: #edf2f7;
   color: #2b2d42;
-  padding-bottom: 90px;
+  padding-bottom: 70px;
 }
 
 /* --------------------------------------------------------------------------
@@ -27,10 +35,14 @@ body {
 .hero-section {
   background: linear-gradient(135deg, #0b2545 0%, #134074 50%, #1d3557 100%);
   color: #ffffff;
-  padding: 3rem 1.5rem 2.75rem;
-  border-radius: 0 0 1.5rem 1.5rem;
-  margin-bottom: 2.5rem;
-  box-shadow: 0 10px 30px rgba(11, 37, 69, 0.2);
+  padding: 2.25rem 1.25rem 2rem;
+  border-radius: 0 0 1.25rem 1.25rem;
+  margin-bottom: 1.75rem;
+  box-shadow: 0 10px 25px rgba(11, 37, 69, 0.18);
+}
+
+.hero-title {
+  letter-spacing: -0.5px;
 }
 
 .hero-badge {
@@ -39,37 +51,40 @@ body {
   color: #ffffff;
   font-weight: 500;
   font-size: 0.85rem;
-  letter-spacing: 0.5px;
 }
 
 .hero-lead {
-  max-width: 860px;
+  max-width: 980px;
+  font-size: 1rem;
   opacity: 0.95;
 }
 
+/* Layout Expandido - Ocupa mais largura de tela conforme solicitado */
 .main-container {
-  max-width: 960px;
+  max-width: 1440px;
+  width: 96%;
+  margin: 0 auto;
 }
 
 /* --------------------------------------------------------------------------
-   Barra de Progresso Fixa / Sticky
+   Barra de Progresso e Stepper de Navegação Sticky
    -------------------------------------------------------------------------- */
 .sticky-progress-bar {
   position: sticky;
   top: 0;
   z-index: 1020;
-  background: rgba(255, 255, 255, 0.96);
+  background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(10px);
-  padding: 0.85rem 1.25rem;
+  padding: 0.75rem 1.25rem 0.65rem;
   border-bottom: 1px solid #cbd5e1;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
   border-radius: 0.75rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.75rem;
   transition: all 0.3s ease;
 }
 
 .custom-progress-track {
-  height: 12px;
+  height: 8px;
   background-color: #e2e8f0;
   border-radius: 6px;
   overflow: hidden;
@@ -77,58 +92,213 @@ body {
 
 .ahp-progress-bar-fill {
   width: var(--progress-percentage, 0%);
-  transition: width 0.35s ease-in-out;
+  transition: width 0.3s ease-in-out;
 }
 
 /* --------------------------------------------------------------------------
-   Containeres de Etapas (Visual Separation)
+   Stepper de Navegação Moderno (com nome dos critérios e subcritérios)
+   -------------------------------------------------------------------------- */
+.stepper-nav {
+  width: 100%;
+  overflow-x: auto;
+  padding: 0.2rem 0 0.4rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.stepper-nav::-webkit-scrollbar {
+  height: 5px;
+}
+
+.stepper-nav::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.stepper-track {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+  width: 100%;
+  min-width: 980px;
+}
+
+/* Botões do Stepper */
+.stepper-nav-btn {
+  flex: 1 1 0;
+  min-width: 100px;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 0.65rem;
+  padding: 0.45rem 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  user-select: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.stepper-nav-btn:hover {
+  border-color: #94a3b8;
+  background-color: #f8fafc;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+.stepper-nav-btn.active {
+  background: linear-gradient(135deg, #0f4c81 0%, #15558e 100%);
+  border-color: #0b3860;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(15, 76, 129, 0.25);
+  transform: translateY(-1px);
+}
+
+.stepper-nav-btn.is-completed:not(.active) {
+  border-color: #82c79f;
+  background-color: #f0fdf4;
+}
+
+/* Badge com código do critério */
+.stepper-badge-wrap {
+  flex-shrink: 0;
+}
+
+.stepper-code-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: #e2e8f0;
+  color: #334155;
+  font-size: 0.74rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.stepper-nav-btn.active .stepper-code-badge {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+}
+
+/* Textos descritivos */
+.stepper-text-wrap {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+  flex-grow: 1;
+}
+
+.stepper-cat-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: #64748b;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.stepper-nav-btn.active .stepper-cat-label {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.stepper-name-label {
+  font-size: 0.79rem;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stepper-nav-btn.active .stepper-name-label {
+  color: #ffffff;
+}
+
+.stepper-nav-btn.is-completed:not(.active) .stepper-name-label {
+  color: #166534;
+}
+
+/* Indicador de Concluído */
+.stepper-check-indicator {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  color: #16a34a;
+}
+
+.stepper-nav-btn.active .stepper-check-indicator {
+  color: #86efac;
+}
+
+/* --------------------------------------------------------------------------
+   Visibilidade dos Steps (Multi-Step Wizard)
+   -------------------------------------------------------------------------- */
+.step-view {
+  display: none;
+}
+
+.step-view.active {
+  display: block;
+  animation: fadeInStep 0.25s ease-in-out;
+}
+
+@keyframes fadeInStep {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Containeres de Etapa
    -------------------------------------------------------------------------- */
 .step-container {
-  border-radius: 1.25rem;
-  padding: 2rem;
-  margin-bottom: 2.25rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  border-radius: 1rem;
+  padding: 1.75rem 1.75rem 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
   border: 1px solid rgba(0, 0, 0, 0.06);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Etapa 1: Contextualização e Guia de Critérios */
-.step-container-guide {
-  background: linear-gradient(180deg, #f8faff 0%, #eef4fc 100%);
-  border-left: 6px solid #134074;
-}
-
-/* Etapa 2: Identificação do Especialista */
 .step-container-evaluator {
   background: #ffffff;
-  border-left: 6px solid #0f4c81;
+  border-left: 6px solid var(--primary-accent);
 }
 
-/* Etapa 3: Avaliações Paritárias Fuzzy-AHP */
 .step-container-comparisons {
   background: #eef2f6;
   border-left: 6px solid #0d6efd;
 }
 
-/* Etapa 4: Comentários & Finalização */
 .step-container-finish {
   background: #ffffff;
-  border-left: 6px solid #198754;
+  border-left: 6px solid var(--success-color);
 }
 
-/* Cabeçalho de Etapa */
+/* Cabeçalho da Etapa */
 .step-header {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  padding-bottom: 1rem;
+  padding-bottom: 0.85rem;
 }
 
 .step-number-badge {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: var(--primary-accent);
   color: #ffffff;
@@ -138,19 +308,22 @@ body {
   font-weight: 700;
   font-size: 1.15rem;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(15, 76, 129, 0.3);
+  box-shadow: 0 2px 8px rgba(15, 76, 129, 0.25);
 }
 
-.step-number-finish {
-  background: var(--success-color);
-  box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3);
-}
+.step-badge-a { background: var(--crit-a-color); box-shadow: 0 2px 8px rgba(111, 66, 193, 0.3); }
+.step-badge-b { background: var(--crit-b-color); box-shadow: 0 2px 8px rgba(176, 42, 55, 0.3); }
+.step-badge-c { background: var(--crit-c-color); box-shadow: 0 2px 8px rgba(153, 116, 4, 0.3); }
+.step-badge-d { background: var(--crit-d-color); box-shadow: 0 2px 8px rgba(8, 121, 144, 0.3); }
+.step-badge-e { background: var(--crit-e-color); box-shadow: 0 2px 8px rgba(73, 80, 87, 0.3); }
+.step-badge-f { background: var(--crit-f-color); box-shadow: 0 2px 8px rgba(20, 108, 67, 0.3); }
+.step-number-finish { background: var(--success-color); box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3); }
 
 .step-title {
   margin: 0;
   font-weight: 700;
   color: #1e293b;
-  font-size: 1.25rem;
+  font-size: 1.2rem;
 }
 
 .step-subtitle {
@@ -159,80 +332,183 @@ body {
   color: #64748b;
 }
 
+.step-intro-card {
+  border-left: 4px solid #cbd5e1;
+}
+
+.border-crit-a { border-left-color: var(--crit-a-color) !important; }
+.border-crit-b { border-left-color: var(--crit-b-color) !important; }
+.border-crit-c { border-left-color: var(--crit-c-color) !important; }
+.border-crit-d { border-left-color: var(--crit-d-color) !important; }
+.border-crit-e { border-left-color: var(--crit-e-color) !important; }
+.border-crit-f { border-left-color: var(--crit-f-color) !important; }
+
+.text-crit-a { color: var(--crit-a-color) !important; }
+.text-crit-b { color: var(--crit-b-color) !important; }
+.text-crit-c { color: var(--crit-c-color) !important; }
+.text-crit-d { color: var(--crit-d-color) !important; }
+.text-crit-e { color: var(--crit-e-color) !important; }
+.text-crit-f { color: var(--crit-f-color) !important; }
+
 /* --------------------------------------------------------------------------
-   Cards de Comparações Paritárias
+   Matriz de Comparações (Flex-Wrap com mesmo número de itens por linha)
+   Desktop: 3 itens por linha (15 = 5x3, 6 = 2x3, 3 = 1x3) -> Matriz perfeita!
    -------------------------------------------------------------------------- */
-.criteria-card {
-  transition: all 0.25s ease-in-out;
-  border: 1px solid #cbd5e1;
+.comparison-matrix {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: stretch;
+  margin-bottom: 1.5rem;
+}
+
+.criteria-card-item {
+  flex: 0 0 calc(33.3333% - 0.67rem);
+  max-width: calc(33.3333% - 0.67rem);
+  display: flex;
+  flex-direction: column;
   background-color: #ffffff;
-  border-radius: 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: all 0.22s ease-in-out;
   overflow: hidden;
 }
 
-.criteria-card:hover {
-  box-shadow: 0 10px 28px rgba(15, 76, 129, 0.09);
+.criteria-card-item:hover {
   border-color: #94a3b8;
+  box-shadow: 0 6px 16px rgba(15, 76, 129, 0.08);
 }
 
-.criteria-card.is-completed {
+.criteria-card-item.is-completed {
   border-color: var(--card-border-answered);
   background-color: var(--card-bg-answered);
 }
 
-.comparison-header {
-  border-bottom: 1px solid #f1f5f9;
-  padding: 1rem 1.25rem;
+/* Responsividade da Matriz */
+@media (max-width: 1199.98px) {
+  .criteria-card-item {
+    flex: 0 0 calc(50% - 0.5rem);
+    max-width: calc(50% - 0.5rem);
+  }
 }
 
-.badge-status {
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 0.35rem 0.65rem;
+@media (max-width: 767.98px) {
+  .criteria-card-item {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
 }
 
 /* --------------------------------------------------------------------------
-   Radio Button Customizado
+   Estrutura Interna Compacta do Card de Comparação
    -------------------------------------------------------------------------- */
-.custom-radio-card {
-  display: block;
+.criteria-card-header {
+  padding: 0.65rem 0.85rem;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.criteria-card-item.is-completed .criteria-card-header {
+  background-color: #edf8f1;
+  border-bottom-color: #d1fae5;
+}
+
+.card-pair-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.45rem;
+  background-color: #e2e8f0;
+  color: #475569;
+  border-radius: 0.35rem;
+}
+
+.badge-status {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.25rem 0.55rem;
+}
+
+.criteria-card-body {
+  padding: 0.8rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: 0.65rem;
+}
+
+/* Título do Par em Análise */
+.pair-card-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.3;
+}
+
+.pair-card-subtitle {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 0.25rem;
+}
+
+/* --------------------------------------------------------------------------
+   Rádios Compactos (Pergunta 1)
+   -------------------------------------------------------------------------- */
+.pair-radio-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.custom-radio-compact {
   position: relative;
   cursor: pointer;
+  display: block;
+  margin: 0;
   user-select: none;
 }
 
-.custom-radio-card input[type="radio"] {
+.custom-radio-compact input[type="radio"] {
   position: absolute;
   opacity: 0;
-  cursor: pointer;
+  width: 0;
+  height: 0;
 }
 
-.radio-content {
-  border: 2px solid #e2e8f0;
-  border-radius: 0.65rem;
-  padding: 0.9rem 1.2rem;
-  transition: all 0.2s ease;
-  background-color: #ffffff;
+.radio-pill {
+  border: 1.5px solid #cbd5e1;
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.82rem;
+  background: #ffffff;
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  line-height: 1.25;
 }
 
-.custom-radio-card:hover .radio-content {
+.custom-radio-compact:hover .radio-pill {
   border-color: #94a3b8;
-  background-color: #f8fafc;
+  background: #f8fafc;
 }
 
-.custom-radio-card input[type="radio"]:checked + .radio-content {
+.custom-radio-compact input[type="radio"]:checked + .radio-pill {
   border-color: var(--primary-accent);
-  background-color: #f0f7ff;
-  color: var(--primary-accent);
-  box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.15);
+  background: #eef6ff;
+  color: #0b3860;
+  font-weight: 600;
+  box-shadow: 0 0 0 2px rgba(15, 76, 129, 0.15);
 }
 
-.radio-indicator {
-  width: 22px;
-  height: 22px;
+.radio-indicator-dot {
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   border: 2px solid #cbd5e1;
   display: inline-flex;
@@ -242,176 +518,139 @@ body {
   transition: all 0.2s ease;
 }
 
-.custom-radio-card input[type="radio"]:checked + .radio-content .radio-indicator {
+.custom-radio-compact input[type="radio"]:checked + .radio-pill .radio-indicator-dot {
   border-color: var(--primary-accent);
   background-color: var(--primary-accent);
 }
 
-.custom-radio-card input[type="radio"]:checked + .radio-content .radio-indicator::after {
+.custom-radio-compact input[type="radio"]:checked + .radio-pill .radio-indicator-dot::after {
   content: "";
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background-color: #ffffff;
 }
 
+.radio-text-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-grow: 1;
+}
+
 /* --------------------------------------------------------------------------
-   Destaque Dinâmico das Perguntas e Estado Desabilitado do Select
+   Bloco Compacto da Escala de Saaty (Pergunta 2)
    -------------------------------------------------------------------------- */
+.intensity-block {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.55rem;
+  padding: 0.55rem 0.75rem;
+  transition: all 0.25s ease;
+}
+
+.intensity-block.is-disabled {
+  opacity: 0.45;
+  background: #f1f5f9;
+  border-style: dashed;
+  pointer-events: none;
+}
+
 .dynamic-question-label {
-  transition: color 0.3s ease;
+  font-size: 0.78rem;
   font-weight: 600;
-  font-size: 1rem;
+  color: #334155;
+  margin-bottom: 0.3rem;
+  display: block;
+  line-height: 1.3;
 }
 
 .dynamic-question-label .highlight-crit {
   color: var(--primary-accent);
   text-decoration: underline;
-  text-underline-offset: 4px;
-}
-
-.intensity-question-block {
-  transition: all 0.3s ease-in-out;
-  padding: 1.15rem 1.25rem;
-  border-radius: 0.75rem;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-}
-
-.intensity-question-block.is-disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-  pointer-events: none;
-  background-color: #f1f5f9;
-  border: 2px dashed #cbd5e1;
-}
-
-.intensity-question-block.is-disabled .dynamic-question-label {
-  color: #64748b;
-}
-
-.intensity-question-block.is-disabled .saaty-select {
-  background-color: #e2e8f0;
-  border-color: #cbd5e1;
-  color: #94a3b8;
-  cursor: not-allowed;
-  box-shadow: none;
+  text-underline-offset: 2px;
 }
 
 .saaty-select {
-  cursor: pointer;
-  transition: all 0.25s ease;
-  border: 2px solid #cbd5e1;
+  font-size: 0.82rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.4rem;
+  border: 1.5px solid #cbd5e1;
   background-color: #ffffff;
-  color: #1e293b;
   font-weight: 500;
+  color: #1e293b;
 }
 
 .saaty-select:focus {
   border-color: var(--primary-accent);
-  box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.15);
-}
-
-.intensity-hint-disabled {
-  display: block;
-}
-
-.intensity-hint-enabled {
-  display: none;
-}
-
-.intensity-question-block:not(.is-disabled) .intensity-hint-disabled {
-  display: none;
-}
-
-.intensity-question-block:not(.is-disabled) .intensity-hint-enabled {
-  display: block;
+  box-shadow: 0 0 0 2px rgba(15, 76, 129, 0.15);
 }
 
 /* --------------------------------------------------------------------------
-   Pílulas de Referência dos Critérios
+   Badges Temáticas dos Critérios e Subcritérios
    -------------------------------------------------------------------------- */
-.criteria-reference-pill {
-  padding: 0.75rem 1rem;
-  border-radius: 0.65rem;
-  background: #ffffff;
-  border-left: 5px solid #64748b;
-  font-size: 0.9rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+.badge-criteria-global { background-color: var(--primary-accent); color: #ffffff; }
+.badge-criteria-a { background-color: var(--crit-a-color); color: #ffffff; }
+.badge-criteria-b { background-color: var(--crit-b-color); color: #ffffff; }
+.badge-criteria-c { background-color: var(--crit-c-color); color: #ffffff; }
+.badge-criteria-d { background-color: var(--crit-d-color); color: #ffffff; }
+.badge-criteria-e { background-color: var(--crit-e-color); color: #ffffff; }
+.badge-criteria-f { background-color: var(--crit-f-color); color: #ffffff; }
+.badge-criteria-finish { background-color: var(--success-color); color: #ffffff; }
+
+/* --------------------------------------------------------------------------
+   Rodapé de Navegação do Multi-Step
+   -------------------------------------------------------------------------- */
+.step-nav-footer {
+  padding-top: 1.25rem;
+  border-top: 1px solid #cbd5e1;
+  margin-top: 1rem;
 }
 
-.criteria-pill-a {
-  border-left-color: #6f42c1;
-}
-
-.criteria-pill-b {
-  border-left-color: #b02a37;
-}
-
-.criteria-pill-c {
-  border-left-color: #997404;
-}
-
-.criteria-pill-d {
-  border-left-color: #087990;
-}
-
-.criteria-pill-e {
-  border-left-color: #495057;
-}
-
-.criteria-pill-f {
-  border-left-color: #146c43;
+.step-completion-indicator {
+  font-size: 0.85rem;
 }
 
 /* --------------------------------------------------------------------------
-   Badges de Critérios
+   Modal e Utilitários
    -------------------------------------------------------------------------- */
-.badge-criteria-a {
-  background-color: #6f42c1;
-  color: #ffffff;
+.modal-diagram-img {
+  max-height: 70vh;
+  object-fit: contain;
 }
 
-.badge-criteria-b {
-  background-color: #b02a37;
-  color: #ffffff;
-}
-
-.badge-criteria-c {
-  background-color: #997404;
-  color: #ffffff;
-}
-
-.badge-criteria-d {
-  background-color: #087990;
-  color: #ffffff;
-}
-
-.badge-criteria-e {
-  background-color: #495057;
-  color: #ffffff;
-}
-
-.badge-criteria-f {
-  background-color: #146c43;
-  color: #ffffff;
-}
-
-/* --------------------------------------------------------------------------
-   Modal de Sucesso
-   -------------------------------------------------------------------------- */
 .modal-success-icon {
   font-size: 4rem;
 }
 
-/* --------------------------------------------------------------------------
-   Animações
-   -------------------------------------------------------------------------- */
-.fade-in {
-  animation: fadeIn 0.4s ease-in;
+.modal-danger-icon {
+  font-size: 3.5rem;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+#saveStatusIndicator {
+  font-size: 0.74rem;
+  padding: 0.22rem 0.55rem;
+  border-radius: 2rem;
+  transition: all 0.25s ease;
+}
+
+.btn-reset-sticky {
+  font-size: 0.72rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 2rem;
+  line-height: 1.2;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.highlight-invalid-card {
+  animation: shakeAlert 0.4s ease-in-out;
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25) !important;
+}
+
+@keyframes shakeAlert {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
 }

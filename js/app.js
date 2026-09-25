@@ -1,89 +1,161 @@
 /**
- * Lógica principal da aplicação de pesquisa Fuzzy-AHP
- * (Sem manipulação de inline styles em elementos HTML - 100% via classes e CSS variables)
+ * Lógica da Aplicação de Pesquisa Fuzzy-AHP
+ * Gerenciamento de Stepper Multi-Etapas com Nomes de Critérios e Subcritérios,
+ * Renderização em Matriz Compacta, Validação e Persistência em Local Storage
+ * (100% sem inline styles no HTML - manipulação via CSS variables e classes)
  */
 
 document.addEventListener("DOMContentLoaded", function () {
-  const container = document.getElementById("pairwiseComparisonsContainer");
+  const STORAGE_KEY = "ahp_cave_survey_progress_data";
+
+  let currentStep = 1;
+  const totalSteps = SURVEY_STEPS.length;
+  const allPairs = getAllSurveyPairs();
+
+  // Elementos globais do DOM
   const form = document.getElementById("ahpForm");
-  const alertContainer = document.getElementById("validationAlert");
+  const stepperTrack = document.getElementById("stepperTrack");
+  const progressBar = document.getElementById("ahpProgressBar");
+  const progressText = document.getElementById("ahpProgressText");
+  const currentStepBadge = document.getElementById("currentStepBadge");
+  const currentStepName = document.getElementById("currentStepName");
+  const validationAlert = document.getElementById("validationAlert");
+  const saveStatusText = document.getElementById("saveStatusText");
+  const saveStatusIcon = document.getElementById("saveStatusIcon");
+  const confirmResetBtn = document.getElementById("confirmResetBtn");
 
-  const pairs = generatePairwiseCombinations(CRITERIA);
+  // 1. Renderizar os botões do Stepper com nome dos critérios/subcritérios
+  renderStepperPills();
 
-  // Renderizar as 15 comparações paritárias
-  renderComparisonCards(pairs, container);
+  // 2. Renderizar as matrizes de comparação para as etapas 2 a 8
+  renderAllComparisonMatrices();
 
-  // Inicializar listeners de alteração
-  setupEventListeners(pairs);
+  // 3. Inicializar event listeners nos inputs cadastrais e paritários
+  setupComparisonEventListeners();
+  setupEvaluatorAutoSave();
 
-  // Atualizar progresso inicial
-  updateProgress(pairs);
+  // 4. Inicializar navegação entre steps e botão de reset
+  setupNavigationEventListeners();
+  setupResetListener();
 
-  // Manipular envio do formulário com validação e AJAX Formcarry
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
+  // Verifica se o questionário acabou de ser resetado para exibir mensagem de sucesso
+  if (sessionStorage.getItem("ahp_survey_just_reset") === "true") {
+    sessionStorage.removeItem("ahp_survey_just_reset");
+    showAlert("O questionário e os dados do navegador foram resetados com sucesso!", "success");
+  }
 
-    // Validar dados do participante
-    const emailInput = document.getElementById("evaluatorEmail");
-    const nameInput = document.getElementById("evaluatorName");
+  // 5. Restaurar progresso prévio salvo em Local Storage (se houver)
+  const wasRestored = loadProgressFromLocalStorage();
 
-    if (!nameInput.value.trim() || !emailInput.value.trim()) {
-      showAlert("Por favor, preencha seu Nome e E-mail antes de prosseguir.", "warning");
-      nameInput.focus();
-      return;
-    }
+  // 6. Atualizar progresso inicial
+  updateAllProgress();
 
-    // Validar todas as 15 comparações
-    const uncompletedPair = findFirstIncompletePair(pairs);
-    if (uncompletedPair) {
-      const cardElement = document.getElementById(`card_${uncompletedPair.pairKey}`);
-      showAlert(
-        `Atenção: A <strong>Comparação ${uncompletedPair.index} (${uncompletedPair.crit1.code} vs ${uncompletedPair.crit2.code})</strong> na Etapa 3 ainda não foi totalmente respondida.`,
-        "danger"
-      );
-      if (cardElement) {
-        cardElement.scrollIntoView({ behavior: "smooth", block: "center" });
-        cardElement.classList.add("border-danger");
-        setTimeout(() => cardElement.classList.remove("border-danger"), 3000);
-      }
-      return;
-    }
+  // 7. Atualizar resumo inicial
+  updateReviewSummary();
 
-    // Formulário 100% completo -> Enviar dados
-    submitSurveyForm(form);
-  });
-});
+  /**
+   * Renderiza os 9 botões do Stepper horizontal com nomes reais de critérios e subcritérios
+   */
+  function renderStepperPills() {
+    if (!stepperTrack) return;
+    let html = "";
 
-/**
- * Renderiza os cards das 15 comparações
- */
-function renderComparisonCards(pairs, container) {
-  let html = "";
-
-  pairs.forEach((pair) => {
-    const { index, crit1, crit2, pairKey } = pair;
-    const code1Lower = crit1.code.toLowerCase();
-    const code2Lower = crit2.code.toLowerCase();
-
-    html += `
-      <div class="card criteria-card mb-4 shadow-sm" id="card_${pairKey}" data-pair="${pairKey}">
-        <div class="card-header bg-white comparison-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-          <div>
-            <span class="badge bg-secondary me-2">Comparação ${index} de ${pairs.length}</span>
-            <span class="fw-bold fs-6 text-dark">${crit1.fullName} <span class="text-muted fw-normal">vs</span> ${crit2.fullName}</span>
+    SURVEY_STEPS.forEach((step) => {
+      const isActive = step.stepIndex === 1 ? "active" : "";
+      html += `
+        <button type="button" 
+                class="stepper-nav-btn ${isActive}" 
+                id="stepperPill_${step.stepIndex}" 
+                data-step-index="${step.stepIndex}"
+                title="${step.title}">
+          <div class="stepper-badge-wrap">
+            <span class="stepper-code-badge ${step.badgeClass || ''}" id="pillNum_${step.stepIndex}">
+              ${step.codeBadge}
+            </span>
           </div>
-          <span class="badge bg-light text-secondary border badge-status" id="status_${pairKey}">Pendente</span>
-        </div>
-        
-        <div class="card-body p-4">
-          <!-- Pergunta 1: Rádios -->
-          <div class="mb-4">
-            <label class="form-label fw-bold d-block text-dark mb-3">
-              Qual critério você julga mais importante?
-            </label>
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="custom-radio-card w-100">
+          <div class="stepper-text-wrap">
+            <span class="stepper-cat-label">${step.category}</span>
+            <span class="stepper-name-label">${step.navTitle}</span>
+          </div>
+          <div class="stepper-check-indicator" id="stepperCheck_${step.stepIndex}"></div>
+        </button>
+      `;
+    });
+
+    stepperTrack.innerHTML = html;
+
+    // Listener para navegação ao clicar nos botões do stepper
+    const pills = stepperTrack.querySelectorAll(".stepper-nav-btn");
+    pills.forEach((pill) => {
+      pill.addEventListener("click", function () {
+        const targetStep = parseInt(this.getAttribute("data-step-index"), 10);
+        if (targetStep === currentStep) return;
+
+        // Se estiver avançando além da etapa atual, valida a etapa atual
+        if (targetStep > currentStep) {
+          const isValid = validateStep(currentStep);
+          if (!isValid) return;
+        }
+
+        goToStep(targetStep);
+      });
+    });
+  }
+
+  /**
+   * Renderiza os cards compactos em matriz para todas as etapas de comparação
+   */
+  function renderAllComparisonMatrices() {
+    SURVEY_STEPS.forEach((step) => {
+      if (step.type === "comparisons" && Array.isArray(step.pairs)) {
+        const matrixContainer = document.getElementById(`matrixContainer_step_${step.stepIndex}`);
+        if (matrixContainer) {
+          renderMatrixCards(step.pairs, matrixContainer, step);
+        }
+      }
+    });
+  }
+
+  /**
+   * Renderiza os cards de uma etapa específica em formato de matriz
+   */
+  function renderMatrixCards(pairs, container, step) {
+    let html = "";
+
+    pairs.forEach((pair) => {
+      const { index, crit1, crit2, pairKey } = pair;
+      const themeCode1 = (crit1.parentCode || crit1.code).toLowerCase();
+      const themeCode2 = (crit2.parentCode || crit2.code).toLowerCase();
+
+      html += `
+        <div class="criteria-card-item" id="card_${pairKey}" data-pair="${pairKey}">
+          <!-- Cabeçalho Compacto do Card -->
+          <div class="criteria-card-header">
+            <span class="card-pair-badge">
+              <i class="bi bi-shuffle me-1"></i>Par ${index} de ${pairs.length}
+            </span>
+            <span class="badge bg-light text-secondary border badge-status" id="status_${pairKey}">
+              Pendente
+            </span>
+          </div>
+
+          <!-- Corpo Compacto do Card -->
+          <div class="criteria-card-body">
+            <!-- Título do Par em Análise -->
+            <div class="pair-card-title d-flex align-items-center justify-content-between">
+              <span>
+                <span class="badge badge-criteria-${themeCode1}">${crit1.code}</span>
+                <span class="text-muted mx-1">vs</span>
+                <span class="badge badge-criteria-${themeCode2}">${crit2.code}</span>
+              </span>
+            </div>
+
+            <!-- Pergunta 1: Rádios Seletores Compactos -->
+            <div>
+              <div class="pair-card-subtitle">1. Qual critério é mais relevante?</div>
+              <div class="pair-radio-grid">
+                <!-- Opção 1 -->
+                <label class="custom-radio-compact" title="${crit1.description || crit1.fullName}">
                   <input type="radio" 
                          name="mais_importante_${pairKey}" 
                          value="${crit1.fullName}" 
@@ -92,18 +164,17 @@ function renderComparisonCards(pairs, container) {
                          data-chosen="${crit1.fullName}" 
                          data-other="${crit2.fullName}"
                          required>
-                  <div class="radio-content">
-                    <span class="radio-indicator"></span>
-                    <div>
-                      <span class="badge badge-criteria-${code1Lower}">${crit1.code}</span>
-                      <strong class="ms-1">${crit1.name}</strong>
+                  <div class="radio-pill">
+                    <span class="radio-indicator-dot"></span>
+                    <div class="radio-text-label">
+                      <span class="badge badge-criteria-${themeCode1}">${crit1.code}</span>
+                      <span class="text-truncate">${crit1.name}</span>
                     </div>
                   </div>
                 </label>
-              </div>
 
-              <div class="col-md-6">
-                <label class="custom-radio-card w-100">
+                <!-- Opção 2 -->
+                <label class="custom-radio-compact" title="${crit2.description || crit2.fullName}">
                   <input type="radio" 
                          name="mais_importante_${pairKey}" 
                          value="${crit2.fullName}" 
@@ -112,231 +183,741 @@ function renderComparisonCards(pairs, container) {
                          data-chosen="${crit2.fullName}" 
                          data-other="${crit1.fullName}"
                          required>
-                  <div class="radio-content">
-                    <span class="radio-indicator"></span>
-                    <div>
-                      <span class="badge badge-criteria-${code2Lower}">${crit2.code}</span>
-                      <strong class="ms-1">${crit2.name}</strong>
+                  <div class="radio-pill">
+                    <span class="radio-indicator-dot"></span>
+                    <div class="radio-text-label">
+                      <span class="badge badge-criteria-${themeCode2}">${crit2.code}</span>
+                      <span class="text-truncate">${crit2.name}</span>
                     </div>
                   </div>
                 </label>
               </div>
             </div>
-          </div>
 
-          <!-- Pergunta 2: Select com escala de Saaty textual -->
-          <div class="intensity-question-block is-disabled" id="intensity_block_${pairKey}">
-            <label class="form-label dynamic-question-label text-dark mb-2" id="label_intensidade_${pairKey}">
-              <i class="bi bi-lock-fill me-1 text-muted" id="lock_icon_${pairKey}"></i> O quão mais importante o critério selecionado é mais importante que o outro?
-            </label>
-            <select class="form-select form-select-lg saaty-select" 
-                    id="select_intensidade_${pairKey}" 
-                    name="intensidade_saaty_${pairKey}" 
-                    disabled 
-                    required>
-              <option value="" disabled selected>Selecione o critério mais importante na pergunta acima primeiro...</option>
-              ${SAATY_SCALE_OPTIONS.map((opt) => `<option value="${opt}">${opt}</option>`).join("")}
-            </select>
-            <div class="form-text text-muted mt-2 intensity-hint-disabled">
-              <i class="bi bi-info-circle me-1"></i> Responda à pergunta 1 acima para habilitar esta seleção.
-            </div>
-            <div class="form-text text-muted mt-2 intensity-hint-enabled">
-              Valores textuais da escala de Saaty (sem conversão numérica).
+            <!-- Pergunta 2: Intensidade (Escala Verbal de Saaty) -->
+            <div class="intensity-block is-disabled" id="intensity_block_${pairKey}">
+              <label class="dynamic-question-label" id="label_intensidade_${pairKey}">
+                <i class="bi bi-lock-fill me-1 text-muted"></i> 2. Grau de superioridade:
+              </label>
+              <select class="form-select form-select-sm saaty-select" 
+                      id="select_intensidade_${pairKey}" 
+                      name="intensidade_saaty_${pairKey}" 
+                      disabled 
+                      required>
+                <option value="" disabled selected>Selecione a prioridade acima...</option>
+                ${SAATY_SCALE_OPTIONS.map((opt) => `<option value="${opt}">${opt}</option>`).join("")}
+              </select>
             </div>
           </div>
         </div>
-      </div>
-    `;
-  });
+      `;
+    });
 
-  container.innerHTML = html;
-}
+    container.innerHTML = html;
+  }
 
-/**
- * Configura listeners de eventos para atualização dinâmica dos textos e progresso
- */
-function setupEventListeners(pairs) {
-  pairs.forEach((pair) => {
-    const { pairKey } = pair;
-    const radios = document.querySelectorAll(`input[name="mais_importante_${pairKey}"]`);
-    const select = document.getElementById(`select_intensidade_${pairKey}`);
-    const label = document.getElementById(`label_intensidade_${pairKey}`);
-    const card = document.getElementById(`card_${pairKey}`);
-    const statusBadge = document.getElementById(`status_${pairKey}`);
-    const intensityBlock = document.getElementById(`intensity_block_${pairKey}`);
+  /**
+   * Configura listeners de alteração nos inputs de comparação e auto-salvamento
+   */
+  function setupComparisonEventListeners() {
+    allPairs.forEach((pair) => {
+      const { pairKey } = pair;
+      const radios = document.querySelectorAll(`input[name="mais_importante_${pairKey}"]`);
+      const select = document.getElementById(`select_intensidade_${pairKey}`);
+      const label = document.getElementById(`label_intensidade_${pairKey}`);
+      const card = document.getElementById(`card_${pairKey}`);
+      const statusBadge = document.getElementById(`status_${pairKey}`);
+      const intensityBlock = document.getElementById(`intensity_block_${pairKey}`);
 
-    radios.forEach((radio) => {
-      radio.addEventListener("change", function () {
-        const checkedLabel = this.getAttribute("data-chosen");
-        const uncheckedLabel = this.getAttribute("data-other");
+      radios.forEach((radio) => {
+        radio.addEventListener("change", function () {
+          const chosenCode = this.getAttribute("data-chosen-code");
 
-        // Desbloqueia visualmente o container do select
-        intensityBlock.classList.remove("is-disabled");
+          // Desbloqueia visualmente o container do select
+          if (intensityBlock) {
+            intensityBlock.classList.remove("is-disabled");
+          }
 
-        // Atualização dinâmica do texto solicitada:
-        // "O quão mais importante o critério {radio_checked_label} é mais importante que {radio_unchecked_label}?"
-        label.innerHTML = `<i class="bi bi-unlock-fill me-1 text-primary"></i> O quão mais importante o critério <span class="highlight-crit">${checkedLabel}</span> é mais importante que <span class="highlight-crit">${uncheckedLabel}</span>?`;
+          // Atualização dinâmica do texto
+          if (label) {
+            label.innerHTML = `<i class="bi bi-unlock-fill me-1 text-primary"></i> 2. Grau de superioridade de <span class="highlight-crit">${chosenCode}</span> sobre o outro:`;
+          }
 
-        // Habilita o select
-        select.disabled = false;
-        if (!select.value) {
-          select.options[0].textContent = "Selecione a opção de importância...";
+          // Habilita o select
+          if (select) {
+            select.disabled = false;
+            if (!select.value) {
+              select.options[0].textContent = "Selecione o grau de superioridade...";
+            }
+          }
+
+          checkSinglePairCompletion(pairKey, card, statusBadge, select);
+          updateAllProgress();
+          updateStepCompletionText(pair.stepIndex);
+          saveProgressToLocalStorage();
+        });
+      });
+
+      if (select) {
+        select.addEventListener("change", function () {
+          checkSinglePairCompletion(pairKey, card, statusBadge, select);
+          updateAllProgress();
+          updateStepCompletionText(pair.stepIndex);
+          saveProgressToLocalStorage();
+        });
+      }
+    });
+  }
+
+  /**
+   * Configura auto-salvamento nos campos de identificação do especialista e observações
+   */
+  function setupEvaluatorAutoSave() {
+    const fields = ["evaluatorName", "evaluatorEmail", "evaluatorOrg", "evaluatorRole", "evaluatorNotes"];
+    fields.forEach((fieldId) => {
+      const el = document.getElementById(fieldId);
+      if (el) {
+        el.addEventListener("input", function () {
+          saveProgressToLocalStorage();
+          updateStepperVisual();
+        });
+      }
+    });
+  }
+
+  /**
+   * Configura o listener do botão superior de reset com modal/mensagem de confirmação
+   */
+  function setupResetListener() {
+    const btnResetHero = document.getElementById("btnResetHero");
+
+    if (btnResetHero) {
+      btnResetHero.addEventListener("click", function (e) {
+        e.preventDefault();
+        const modalEl = document.getElementById("resetConfirmModal");
+        if (modalEl && typeof bootstrap !== "undefined") {
+          const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+          modalInstance.show();
+        } else {
+          // Fallback de confirmação nativa caso bootstrap não esteja inicializado
+          const confirmed = window.confirm(
+            "Confirmação: Tem certeza de que deseja resetar todo o questionário?\n\nTodos os dados gravados no navegador serão apagados e a página será recarregada."
+          );
+          if (confirmed) {
+            resetAllProgress();
+          }
         }
+      });
+    }
 
-        checkPairCompletion(pairKey, card, statusBadge, select);
-        updateProgress(pairs);
+    if (confirmResetBtn) {
+      confirmResetBtn.addEventListener("click", function () {
+        resetAllProgress();
+      });
+    }
+  }
+
+  /**
+   * Verifica o estado de preenchimento de um único par
+   */
+  function checkSinglePairCompletion(pairKey, card, statusBadge, select) {
+    const radioChecked = document.querySelector(`input[name="mais_importante_${pairKey}"]:checked`);
+    const selectValue = select ? select.value : "";
+
+    if (radioChecked && selectValue) {
+      if (card) card.classList.add("is-completed");
+      if (statusBadge) {
+        statusBadge.textContent = "Respondido ✓";
+        statusBadge.className = "badge bg-success badge-status";
+      }
+    } else if (radioChecked) {
+      if (card) card.classList.remove("is-completed");
+      if (statusBadge) {
+        statusBadge.textContent = "Defina o grau";
+        statusBadge.className = "badge bg-warning text-dark badge-status";
+      }
+    } else {
+      if (card) card.classList.remove("is-completed");
+      if (statusBadge) {
+        statusBadge.textContent = "Pendente";
+        statusBadge.className = "badge bg-light text-secondary border badge-status";
+      }
+    }
+  }
+
+  /**
+   * Configura listeners para os botões de avançar e voltar de cada etapa
+   */
+  function setupNavigationEventListeners() {
+    // Botão da Etapa 1
+    const btnNextStep1 = document.getElementById("btnNextStep1");
+    if (btnNextStep1) {
+      btnNextStep1.addEventListener("click", function () {
+        if (validateStep(1)) {
+          goToStep(2);
+        }
+      });
+    }
+
+    // Botões genéricos "Avançar"
+    const nextButtons = document.querySelectorAll(".btn-step-next");
+    nextButtons.forEach((btn) => {
+      btn.addEventListener("click", function () {
+        const target = parseInt(this.getAttribute("data-target-step"), 10);
+        if (validateStep(currentStep)) {
+          goToStep(target);
+        }
       });
     });
 
-    select.addEventListener("change", function () {
-      checkPairCompletion(pairKey, card, statusBadge, select);
-      updateProgress(pairs);
+    // Botões genéricos "Voltar"
+    const prevButtons = document.querySelectorAll(".btn-step-prev");
+    prevButtons.forEach((btn) => {
+      btn.addEventListener("click", function () {
+        const target = parseInt(this.getAttribute("data-target-step"), 10);
+        goToStep(target);
+      });
     });
-  });
-}
 
-/**
- * Verifica se um par está completamente respondido
- */
-function checkPairCompletion(pairKey, card, statusBadge, select) {
-  const radioChecked = document.querySelector(`input[name="mais_importante_${pairKey}"]:checked`);
-  const selectValue = select.value;
+    // Submissão do formulário
+    if (form) {
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
 
-  if (radioChecked && selectValue) {
-    card.classList.add("is-completed");
-    statusBadge.textContent = "Respondido ✓";
-    statusBadge.className = "badge bg-success badge-status";
-  } else if (radioChecked) {
-    card.classList.remove("is-completed");
-    statusBadge.textContent = "Selecione a intensidade";
-    statusBadge.className = "badge bg-warning text-dark badge-status";
-  } else {
-    card.classList.remove("is-completed");
-    statusBadge.textContent = "Pendente";
-    statusBadge.className = "badge bg-light text-secondary border badge-status";
-  }
-}
+        // 1. Validação do Especialista (Etapa 1)
+        if (!validateStep(1)) {
+          goToStep(1);
+          return;
+        }
 
-/**
- * Localiza o primeiro par não respondido
- */
-function findFirstIncompletePair(pairs) {
-  for (const pair of pairs) {
-    const radioChecked = document.querySelector(`input[name="mais_importante_${pair.pairKey}"]:checked`);
-    const select = document.getElementById(`select_intensidade_${pair.pairKey}`);
-    if (!radioChecked || !select || !select.value) {
-      return pair;
+        // 2. Validação de todas as etapas de comparação (2 a 8)
+        for (let s = 2; s <= 8; s++) {
+          if (!validateStep(s)) {
+            goToStep(s);
+            return;
+          }
+        }
+
+        // Tudo 100% preenchido -> Realizar envio
+        submitSurveyForm(form);
+      });
     }
   }
-  return null;
-}
 
-/**
- * Atualiza a barra de progresso no topo usando a variável CSS --progress-percentage
- */
-function updateProgress(pairs) {
-  let completedCount = 0;
-  pairs.forEach((pair) => {
-    const radioChecked = document.querySelector(`input[name="mais_importante_${pair.pairKey}"]:checked`);
-    const select = document.getElementById(`select_intensidade_${pair.pairKey}`);
-    if (radioChecked && select && select.value) {
-      completedCount++;
+  /**
+   * Valida uma etapa específica antes de avançar
+   */
+  function validateStep(stepIndex) {
+    clearAlert();
+
+    // Etapa 1: Dados do Especialista
+    if (stepIndex === 1) {
+      const nameInput = document.getElementById("evaluatorName");
+      const emailInput = document.getElementById("evaluatorEmail");
+
+      if (!nameInput || !nameInput.value.trim()) {
+        showAlert("Por favor, preencha seu <strong>Nome Completo</strong> para continuar.", "warning");
+        if (nameInput) nameInput.focus();
+        return false;
+      }
+
+      if (!emailInput || !emailInput.value.trim() || !validateEmailFormat(emailInput.value.trim())) {
+        showAlert("Por favor, preencha um <strong>E-mail válido</strong> institucional ou profissional.", "warning");
+        if (emailInput) emailInput.focus();
+        return false;
+      }
+
+      return true;
     }
-  });
 
-  const percentage = Math.round((completedCount / pairs.length) * 100);
-  const progressBar = document.getElementById("ahpProgressBar");
-  const progressText = document.getElementById("ahpProgressText");
+    // Etapas 2 a 8: Comparações Paritárias
+    const stepDef = SURVEY_STEPS.find((s) => s.stepIndex === stepIndex);
+    if (stepDef && stepDef.type === "comparisons" && Array.isArray(stepDef.pairs)) {
+      const incompletePair = stepDef.pairs.find((pair) => {
+        const radioChecked = document.querySelector(`input[name="mais_importante_${pair.pairKey}"]:checked`);
+        const select = document.getElementById(`select_intensidade_${pair.pairKey}`);
+        return !radioChecked || !select || !select.value;
+      });
 
-  // Atualiza via CSS variable (sem inline style no elemento)
-  document.documentElement.style.setProperty("--progress-percentage", `${percentage}%`);
+      if (incompletePair) {
+        const missingCount = stepDef.pairs.filter((pair) => {
+          const radioChecked = document.querySelector(`input[name="mais_importante_${pair.pairKey}"]:checked`);
+          const select = document.getElementById(`select_intensidade_${pair.pairKey}`);
+          return !radioChecked || !select || !select.value;
+        }).length;
 
-  if (progressBar) {
-    progressBar.setAttribute("aria-valuenow", percentage);
+        const cardElement = document.getElementById(`card_${incompletePair.pairKey}`);
+        showAlert(
+          `Atenção: A <strong>Etapa ${stepIndex} (${stepDef.title})</strong> possui <strong>${missingCount} comparação(ões) pendente(s)</strong>. Complete todas para avançar.`,
+          "danger"
+        );
+
+        if (cardElement) {
+          cardElement.scrollIntoView({ behavior: "smooth", block: "center" });
+          cardElement.classList.add("highlight-invalid-card");
+          setTimeout(() => cardElement.classList.remove("highlight-invalid-card"), 3000);
+        }
+
+        return false;
+      }
+    }
+
+    return true;
   }
 
-  if (progressText) {
-    progressText.textContent = `${completedCount} de ${pairs.length} comparações concluídas (${percentage}%)`;
+  /**
+   * Navega para a etapa informada
+   */
+  function goToStep(targetStep) {
+    if (targetStep < 1 || targetStep > totalSteps) return;
+
+    // Ocultar etapa atual
+    const currentView = document.getElementById(`stepView_${currentStep}`);
+    if (currentView) {
+      currentView.classList.remove("active");
+    }
+
+    // Exibir etapa de destino
+    const targetView = document.getElementById(`stepView_${targetStep}`);
+    if (targetView) {
+      targetView.classList.add("active");
+    }
+
+    currentStep = targetStep;
+    clearAlert();
+
+    // Atualizar visual do Stepper horizontal
+    updateStepperVisual();
+
+    // Se for o step 9 (Revisão e Submissão), atualiza o resumo
+    if (currentStep === 9) {
+      updateReviewSummary();
+    }
+
+    // Salva a etapa atual no Local Storage
+    saveProgressToLocalStorage();
+
+    // Scroll suave para o início do container principal
+    const mainContainer = document.querySelector(".main-container");
+    if (mainContainer) {
+      mainContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }
-}
 
-/**
- * Exibe alertas de validação para o usuário
- */
-function showAlert(message, type = "danger") {
-  const alertContainer = document.getElementById("validationAlert");
-  if (!alertContainer) return;
+  /**
+   * Atualiza as classes ativas/concluídas nos botões do Stepper
+   */
+  function updateStepperVisual() {
+    SURVEY_STEPS.forEach((step) => {
+      const pill = document.getElementById(`stepperPill_${step.stepIndex}`);
+      const checkEl = document.getElementById(`stepperCheck_${step.stepIndex}`);
+      if (!pill) return;
 
-  alertContainer.innerHTML = `
-    <div class="alert alert-${type} alert-dismissible fade show shadow-sm" role="alert">
-      ${message}
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-  `;
-  alertContainer.scrollIntoView({ behavior: "smooth", block: "center" });
-}
+      const isCurrent = step.stepIndex === currentStep;
+      let isCompleted = false;
 
-/**
- * Submete o formulário à API (Web3Forms) com suporte a feedback assíncrono
- */
-function submitSurveyForm(form) {
-  const submitBtn = document.getElementById("submitBtn");
-  const originalBtnText = submitBtn.innerHTML;
+      if (step.stepIndex === 1) {
+        const nameVal = document.getElementById("evaluatorName")?.value.trim();
+        const emailVal = document.getElementById("evaluatorEmail")?.value.trim();
+        isCompleted = Boolean(nameVal && emailVal);
+      } else if (step.type === "comparisons" && Array.isArray(step.pairs)) {
+        const answeredInStep = step.pairs.filter((pair) => {
+          const radio = document.querySelector(`input[name="mais_importante_${pair.pairKey}"]:checked`);
+          const sel = document.getElementById(`select_intensidade_${pair.pairKey}`);
+          return radio && sel && sel.value;
+        }).length;
+        isCompleted = answeredInStep === step.pairs.length;
+      }
 
-  submitBtn.disabled = true;
-  submitBtn.innerHTML = `
-    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-    Enviando respostas...
-  `;
+      pill.classList.toggle("active", isCurrent);
+      pill.classList.toggle("is-completed", isCompleted);
 
-  const formData = new FormData(form);
-  const object = Object.fromEntries(formData.entries());
-  const json = JSON.stringify(object);
-
-  fetch(form.action, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Accept": "application/json"
-    },
-    body: json
-  })
-    .then(async (response) => {
-      let data = null;
-      const text = await response.text();
-      try {
-        data = JSON.parse(text);
-      } catch (parseError) {
-        if (text.includes("Form submitted successfully") || text.includes("success") || response.status === 200) {
-          data = { success: true };
+      if (checkEl) {
+        if (isCompleted) {
+          checkEl.innerHTML = `<i class="bi bi-check-circle-fill"></i>`;
+        } else {
+          checkEl.innerHTML = "";
         }
       }
-
-      if (response.ok && (data?.success === true || response.status === 200)) {
-        showSuccessModal();
-      } else {
-        form.submit();
-      }
-    })
-    .catch((error) => {
-      console.warn("AJAX submit fallback to native POST:", error);
-      form.submit();
-    })
-    .finally(() => {
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = originalBtnText;
     });
-}
 
-/**
- * Exibe modal de confirmação de envio bem-sucedido
- */
-function showSuccessModal() {
-  const successModalElement = document.getElementById("successModal");
-  if (successModalElement && typeof bootstrap !== "undefined") {
-    const modal = new bootstrap.Modal(successModalElement);
-    modal.show();
-  } else {
-    alert("Respostas enviadas com sucesso! Muito obrigado pela sua contribuição.");
+    // Atualiza indicador textual no topo da barra sticky
+    const currentStepDef = SURVEY_STEPS.find((s) => s.stepIndex === currentStep);
+    if (currentStepBadge) {
+      currentStepBadge.textContent = `Etapa ${currentStep} de ${totalSteps}`;
+    }
+    if (currentStepName && currentStepDef) {
+      currentStepName.textContent = currentStepDef.title;
+    }
   }
-}
+
+  /**
+   * Atualiza a barra de progresso geral e o texto de progresso
+   */
+  function updateAllProgress() {
+    let completedTotal = 0;
+
+    allPairs.forEach((pair) => {
+      const radio = document.querySelector(`input[name="mais_importante_${pair.pairKey}"]:checked`);
+      const select = document.getElementById(`select_intensidade_${pair.pairKey}`);
+      if (radio && select && select.value) {
+        completedTotal++;
+      }
+    });
+
+    const percentage = Math.round((completedTotal / allPairs.length) * 100);
+
+    // Variável CSS customizada (100% sem inline styles no elemento HTML)
+    document.documentElement.style.setProperty("--progress-percentage", `${percentage}%`);
+
+    if (progressBar) {
+      progressBar.setAttribute("aria-valuenow", percentage);
+    }
+
+    if (progressText) {
+      progressText.textContent = `${completedTotal} de ${allPairs.length} comparações concluídas (${percentage}%)`;
+    }
+
+    // Atualiza botões do stepper
+    updateStepperVisual();
+  }
+
+  /**
+   * Atualiza o contador de respondidas no rodapé do step
+   */
+  function updateStepCompletionText(stepIndex) {
+    const indicator = document.getElementById(`stepCompletion_${stepIndex}`);
+    const stepDef = SURVEY_STEPS.find((s) => s.stepIndex === stepIndex);
+    if (indicator && stepDef && Array.isArray(stepDef.pairs)) {
+      const answeredInStep = stepDef.pairs.filter((pair) => {
+        const radio = document.querySelector(`input[name="mais_importante_${pair.pairKey}"]:checked`);
+        const sel = document.getElementById(`select_intensidade_${pair.pairKey}`);
+        return radio && sel && sel.value;
+      }).length;
+      indicator.textContent = `${answeredInStep} de ${stepDef.pairs.length} respondidas`;
+    }
+  }
+
+  /**
+   * Atualiza o resumo da Etapa 9 (Revisão e Envio)
+   */
+  function updateReviewSummary() {
+    const nameInput = document.getElementById("evaluatorName");
+    const emailInput = document.getElementById("evaluatorEmail");
+    const orgInput = document.getElementById("evaluatorOrg");
+    const roleInput = document.getElementById("evaluatorRole");
+
+    const summaryName = document.getElementById("summaryName");
+    const summaryEmail = document.getElementById("summaryEmail");
+    const summaryOrg = document.getElementById("summaryOrg");
+    const summaryRole = document.getElementById("summaryRole");
+    const summaryGroupsStatus = document.getElementById("summaryGroupsStatus");
+
+    if (summaryName) summaryName.textContent = nameInput?.value.trim() || "Não informado";
+    if (summaryEmail) summaryEmail.textContent = emailInput?.value.trim() || "Não informado";
+    if (summaryOrg) summaryOrg.textContent = orgInput?.value.trim() || "-";
+    if (summaryRole) summaryRole.textContent = roleInput?.value.trim() || "-";
+
+    if (summaryGroupsStatus) {
+      let html = "";
+      SURVEY_STEPS.forEach((step) => {
+        if (step.type === "comparisons" && Array.isArray(step.pairs)) {
+          const totalPairs = step.pairs.length;
+          const answered = step.pairs.filter((pair) => {
+            const radio = document.querySelector(`input[name="mais_importante_${pair.pairKey}"]:checked`);
+            const sel = document.getElementById(`select_intensidade_${pair.pairKey}`);
+            return radio && sel && sel.value;
+          }).length;
+
+          const isFull = answered === totalPairs;
+          const badgeClass = isFull ? "bg-success" : "bg-warning text-dark";
+          const icon = isFull ? '<i class="bi bi-check-circle-fill me-1"></i>' : '<i class="bi bi-hourglass-split me-1"></i>';
+
+          html += `
+            <div class="col-md-6 mb-2">
+              <div class="p-2 border rounded bg-light-subtle d-flex justify-content-between align-items-center">
+                <span class="text-truncate me-2 fw-semibold text-dark">${step.navTitle}:</span>
+                <span class="badge ${badgeClass}">${icon}${answered}/${totalPairs}</span>
+              </div>
+            </div>
+          `;
+        }
+      });
+      summaryGroupsStatus.innerHTML = html;
+    }
+  }
+
+  /**
+   * Salva o estado atual do questionário em Local Storage
+   */
+  function saveProgressToLocalStorage() {
+    try {
+      const data = {
+        timestamp: new Date().toISOString(),
+        currentStep: currentStep,
+        evaluator: {
+          name: document.getElementById("evaluatorName")?.value || "",
+          email: document.getElementById("evaluatorEmail")?.value || "",
+          instituicao: document.getElementById("evaluatorOrg")?.value || "",
+          area_atuacao: document.getElementById("evaluatorRole")?.value || "",
+          message: document.getElementById("evaluatorNotes")?.value || ""
+        },
+        comparisons: {}
+      };
+
+      allPairs.forEach((pair) => {
+        const radioChecked = document.querySelector(`input[name="mais_importante_${pair.pairKey}"]:checked`);
+        const select = document.getElementById(`select_intensidade_${pair.pairKey}`);
+        if (radioChecked || (select && select.value)) {
+          data.comparisons[pair.pairKey] = {
+            chosenValue: radioChecked ? radioChecked.value : null,
+            chosenCode: radioChecked ? radioChecked.getAttribute("data-chosen-code") : null,
+            otherName: radioChecked ? radioChecked.getAttribute("data-other") : null,
+            intensity: select && select.value ? select.value : null
+          };
+        }
+      });
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      updateSaveIndicator(true);
+    } catch (err) {
+      console.warn("Aviso: não foi possível salvar em localStorage:", err);
+    }
+  }
+
+  /**
+   * Atualiza o indicador visual de salvamento automático
+   */
+  function updateSaveIndicator(isSaved) {
+    if (!saveStatusText || !saveStatusIcon) return;
+    if (isSaved) {
+      saveStatusIcon.className = "bi bi-cloud-check text-success";
+      saveStatusText.textContent = "Salvo localmente";
+    } else {
+      saveStatusIcon.className = "bi bi-arrow-repeat text-warning";
+      saveStatusText.textContent = "Salvando...";
+    }
+  }
+
+  /**
+   * Restaura o progresso do usuário a partir da Local Storage
+   */
+  function loadProgressFromLocalStorage() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return false;
+
+      const data = JSON.parse(raw);
+      if (!data) return false;
+
+      // 1. Restaurar dados do especialista
+      if (data.evaluator) {
+        const nameInput = document.getElementById("evaluatorName");
+        const emailInput = document.getElementById("evaluatorEmail");
+        const orgInput = document.getElementById("evaluatorOrg");
+        const roleInput = document.getElementById("evaluatorRole");
+        const notesInput = document.getElementById("evaluatorNotes");
+
+        if (nameInput && data.evaluator.name) nameInput.value = data.evaluator.name;
+        if (emailInput && data.evaluator.email) emailInput.value = data.evaluator.email;
+        if (orgInput && data.evaluator.instituicao) orgInput.value = data.evaluator.instituicao;
+        if (roleInput && data.evaluator.area_atuacao) roleInput.value = data.evaluator.area_atuacao;
+        if (notesInput && data.evaluator.message) notesInput.value = data.evaluator.message;
+      }
+
+      // 2. Restaurar comparações paritárias
+      let restoredComparisons = 0;
+      if (data.comparisons) {
+        allPairs.forEach((pair) => {
+          const saved = data.comparisons[pair.pairKey];
+          if (!saved) return;
+
+          const radios = document.querySelectorAll(`input[name="mais_importante_${pair.pairKey}"]`);
+          radios.forEach((radio) => {
+            if (radio.value === saved.chosenValue) {
+              radio.checked = true;
+
+              const intensityBlock = document.getElementById(`intensity_block_${pair.pairKey}`);
+              const label = document.getElementById(`label_intensidade_${pair.pairKey}`);
+              const select = document.getElementById(`select_intensidade_${pair.pairKey}`);
+              const chosenCode = radio.getAttribute("data-chosen-code");
+
+              if (intensityBlock) {
+                intensityBlock.classList.remove("is-disabled");
+              }
+              if (label) {
+                label.innerHTML = `<i class="bi bi-unlock-fill me-1 text-primary"></i> 2. Grau de superioridade de <span class="highlight-crit">${chosenCode}</span> sobre o outro:`;
+              }
+              if (select) {
+                select.disabled = false;
+                if (saved.intensity) {
+                  select.value = saved.intensity;
+                }
+              }
+
+              const card = document.getElementById(`card_${pair.pairKey}`);
+              const statusBadge = document.getElementById(`status_${pair.pairKey}`);
+              checkSinglePairCompletion(pair.pairKey, card, statusBadge, select);
+              restoredComparisons++;
+            }
+          });
+        });
+      }
+
+      // 3. Restaurar etapa prévia (se maior que 1)
+      if (data.currentStep && data.currentStep > 1 && data.currentStep <= totalSteps) {
+        goToStep(data.currentStep);
+      }
+
+      // Se algo relevante foi restaurado, exibe aviso informativo
+      if (restoredComparisons > 0 || (data.evaluator && data.evaluator.name)) {
+        showRestoredNotification(restoredComparisons);
+      }
+
+      return true;
+    } catch (err) {
+      console.warn("Erro ao restaurar progresso de localStorage:", err);
+      return false;
+    }
+  }
+
+  /**
+   * Exibe alerta sutil de progresso restaurado
+   */
+  function showRestoredNotification(count) {
+    if (!validationAlert) return;
+    validationAlert.innerHTML = `
+      <div class="alert alert-info alert-dismissible fade show shadow-sm py-2 px-3 small d-flex justify-content-between align-items-center" role="alert">
+        <div>
+          <i class="bi bi-cloud-check-fill me-2 text-primary"></i>
+          <strong>Progresso restaurado:</strong> Suas respostas anteriores (${count} comparações) foram recuperadas do armazenamento local do navegador.
+        </div>
+        <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Fechar"></button>
+      </div>
+    `;
+  }
+
+  /**
+   * Exclui o progresso da Local Storage e reinicia o formulário e o navegador
+   */
+  function resetAllProgress() {
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+      sessionStorage.setItem("ahp_survey_just_reset", "true");
+    } catch (err) {
+      console.warn("Erro ao limpar storage:", err);
+    }
+
+    if (form) {
+      try {
+        form.reset();
+      } catch (e) {}
+    }
+
+    // Fecha o modal de confirmação caso aberto
+    const modalEl = document.getElementById("resetConfirmModal");
+    if (modalEl && typeof bootstrap !== "undefined") {
+      const modalInstance = bootstrap.Modal.getInstance(modalEl);
+      if (modalInstance) modalInstance.hide();
+    }
+
+    // Recarrega o navegador do zero no endereço limpo
+    window.location.href = window.location.pathname;
+  }
+
+  /**
+   * Envia o formulário com dados via Web3Forms
+   */
+  function submitSurveyForm(formElement) {
+    const submitBtn = document.getElementById("submitBtn");
+    const originalBtnText = submitBtn.innerHTML;
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `
+      <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      Enviando todas as avaliações...
+    `;
+
+    const formData = new FormData(formElement);
+    const object = Object.fromEntries(formData.entries());
+    const json = JSON.stringify(object);
+
+    fetch(formElement.action, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: json
+    })
+      .then(async (response) => {
+        let data = null;
+        const text = await response.text();
+        try {
+          data = JSON.parse(text);
+        } catch (parseError) {
+          if (text.includes("Form submitted successfully") || text.includes("success") || response.status === 200) {
+            data = { success: true };
+          }
+        }
+
+        if (response.ok && (data?.success === true || response.status === 200)) {
+          // Limpa o LocalStorage para permitir novo preenchimento posterior limpo
+          try {
+            localStorage.removeItem(STORAGE_KEY);
+          } catch (e) {}
+
+          showSuccessModal();
+        } else {
+          formElement.submit();
+        }
+      })
+      .catch((error) => {
+        console.warn("AJAX submit fallback to native POST:", error);
+        formElement.submit();
+      })
+      .finally(() => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+      });
+  }
+
+  /**
+   * Exibe modal de confirmação de envio bem-sucedido
+   */
+  function showSuccessModal() {
+    const successModalElement = document.getElementById("successModal");
+    if (successModalElement && typeof bootstrap !== "undefined") {
+      const modal = new bootstrap.Modal(successModalElement);
+      modal.show();
+    } else {
+      alert("Respostas enviadas com sucesso! Muito obrigado pela sua contribuição.");
+    }
+  }
+
+  /**
+   * Exibe alertas de validação no container global
+   */
+  function showAlert(message, type = "danger") {
+    if (!validationAlert) return;
+
+    validationAlert.innerHTML = `
+      <div class="alert alert-${type} alert-dismissible fade show shadow-sm" role="alert">
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    `;
+    validationAlert.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  function clearAlert() {
+    if (validationAlert) {
+      validationAlert.innerHTML = "";
+    }
+  }
+
+  function validateEmailFormat(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+});

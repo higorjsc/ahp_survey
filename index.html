@@ -16,43 +16,55 @@
 
   <!-- Hero / Cabeçalho Principal -->
   <header class="hero-section text-center">
-    <div class="container">
+    <div class="container-fluid px-lg-5">
       <span class="badge hero-badge px-3 py-2 rounded-pill mb-3">
-        <i class="bi bi-geo-alt-fill me-1"></i> Sítios de Armazenamento de CO₂ (CCUS)
+        <i class="bi bi-geo-alt-fill me-1"></i> Sítios de Armazenamento de CO₂ (CCUS) &bull; Método Fuzzy-AHP
       </span>
-      <h1 class="display-6 fw-bold mb-3">
+      <h1 class="display-6 fw-bold mb-2 hero-title">
         Seleção de Sítios para Armazenamento de CO₂ em Cavernas de Sal
       </h1>
-      <p class="lead mb-4 mx-auto text-light hero-lead">
-        Questionário de Julgamento Paritário de Especialistas (Método Fuzzy-AHP). Avalie a importância relativa entre os macrocritérios fundamentais para priorização de sítios geológicos.
+      <p class="lead mb-3 mx-auto text-light hero-lead">
+        Questionário de Julgamento Paritário de Especialistas (Método Fuzzy-AHP). Avaliação hierárquica dos macrocritérios e respectivos subcritérios geológicos, operacionais e de segurança.
       </p>
 
-      <!-- Botões de Ajuda Rápida -->
+      <!-- Botões de Ajuda e Consulta Rápida -->
       <div class="d-flex justify-content-center gap-2 flex-wrap">
-        <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#criteriaReferenceCollapse" aria-expanded="false" aria-controls="criteriaReferenceCollapse">
-          <i class="bi bi-info-circle me-1"></i> Ver Descrição dos Critérios (A a F)
+        <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#diagramModal">
+          <i class="bi bi-diagram-3 me-1"></i> Ver Diagrama da Hierarquia
         </button>
-        <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#saatyScaleCollapse" aria-expanded="false" aria-controls="saatyScaleCollapse">
+        <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#saatyScaleModal">
           <i class="bi bi-card-checklist me-1"></i> Guia da Escala de Julgamento
+        </button>
+        <button class="btn btn-outline-danger btn-sm text-white" type="button" id="btnResetHero" data-bs-toggle="modal" data-bs-target="#resetConfirmModal" title="Excluir dados salvos no navegador e reiniciar formulário">
+          <i class="bi bi-arrow-counterclockwise me-1"></i> Resetar Progresso
         </button>
       </div>
     </div>
   </header>
 
   <!-- Container Principal -->
-  <main class="container main-container mb-5">
+  <main class="container-fluid main-container mb-5">
 
-    <!-- Barra de Progresso Fixa / Sticky -->
+    <!-- Barra de Progresso e Stepper de Navegação Fixos / Sticky -->
     <div class="sticky-progress-bar shadow-sm">
-      <div class="d-flex justify-content-between align-items-center mb-1">
-        <span class="small fw-semibold text-secondary">
-          <i class="bi bi-check2-circle me-1 text-primary"></i>Progresso do Questionário:
-        </span>
-        <span class="small fw-bold text-primary" id="ahpProgressText">
-          0 de 15 comparações concluídas (0%)
-        </span>
+      <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-primary px-2 py-1" id="currentStepBadge">Etapa 1 de 9</span>
+          <span class="small fw-semibold text-secondary" id="currentStepName">Contexto & Identificação</span>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span class="badge bg-light text-secondary border small d-inline-flex align-items-center gap-1" id="saveStatusIndicator" title="Seu progresso é gravado automaticamente no armazenamento local deste navegador">
+            <i class="bi bi-cloud-check text-success" id="saveStatusIcon"></i>
+            <span id="saveStatusText">Salvo localmente</span>
+          </span>
+          <span class="small fw-bold text-primary" id="ahpProgressText">
+            0 de 48 comparações concluídas (0%)
+          </span>
+        </div>
       </div>
-      <div class="progress custom-progress-track">
+
+      <!-- Barra de Progresso Geral -->
+      <div class="progress custom-progress-track mb-3">
         <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary ahp-progress-bar-fill" 
              id="ahpProgressBar" 
              role="progressbar" 
@@ -61,6 +73,13 @@
              aria-valuemax="100">
         </div>
       </div>
+
+      <!-- Stepper Interativo Horizontal (Etapas 1 a 9 com nomes dos critérios) -->
+      <nav class="stepper-nav" aria-label="Navegação em Etapas por Critérios">
+        <div class="stepper-track" id="stepperTrack">
+          <!-- Gerado dinamicamente via JS com nomes reais dos critérios/subcritérios e badges temáticas -->
+        </div>
+      </nav>
     </div>
 
     <!-- Área Global de Alertas de Validação -->
@@ -72,173 +91,470 @@
           method="POST">
 
       <input type="hidden" name="access_key" value="b7fcd54a-0764-49b7-ab97-958c10fdb7f5">
-      <input type="hidden" name="subject" value="Nova Avaliação Fuzzy-AHP - Cavernas de Sal">
+      <input type="hidden" name="subject" value="Nova Avaliação Fuzzy-AHP Completa - Cavernas de Sal">
       <input type="hidden" name="from_name" value="Pesquisa Fuzzy-AHP">
 
       <!-- ====================================================================
-           ETAPA 1: Contextualização e Guia de Critérios
+           ETAPA 1: Contexto e Coleta de Dados Pessoais do Especialista
            ==================================================================== -->
-      <section class="step-container step-container-guide">
+      <section class="step-view active step-container step-container-evaluator" id="stepView_1" data-step-index="1">
         <div class="step-header">
           <div class="step-number-badge">1</div>
           <div>
-            <h4 class="step-title">Etapa 1: Contexto e Critérios em Avaliação</h4>
-            <p class="step-subtitle">Visão geral do objetivo e dos 6 macrocritérios extraídos do modelo geológico</p>
+            <h4 class="step-title">Etapa 1: Contexto da Pesquisa & Identificação do Especialista</h4>
+            <p class="step-subtitle">Apresentação do objetivo, fundamentação e dados cadastrais para validação metodológica</p>
           </div>
         </div>
 
-        <p class="text-secondary small mb-3">
-          O objetivo desta etapa é avaliar a importância relativa dos macrocritérios para a escolha de cavernas em rochas salinas adequadas para estocagem geológica de CO₂. Clique abaixo para consultar as definições sempre que necessário:
-        </p>
+        <div class="row g-4 mb-4">
+          <!-- Coluna da Esquerda: Contexto, Objetivo e Metodologia -->
+          <div class="col-lg-6">
+            <div class="card h-100 border-0 shadow-sm bg-light-subtle">
+              <div class="card-body p-4">
+                <h5 class="fw-bold text-primary mb-3">
+                  <i class="bi bi-info-circle-fill me-2"></i>Objetivo da Pesquisa
+                </h5>
+                <p class="text-secondary small leading-relaxed mb-3">
+                  Esta pesquisa científica destina-se à <strong>Seleção e Priorização de Sítios para Armazenamento Geológico de CO₂ em Cavernas de Sal</strong> (tecnologia CCUS - <em>Carbon Capture, Utilization and Storage</em>), utilizando o método multicritério <strong>Fuzzy-AHP (Analytic Hierarchy Process)</strong>.
+                </p>
+                <div class="alert alert-primary border-0 py-2 px-3 small mb-3">
+                  <i class="bi bi-lightbulb me-1"></i> A estrutura hierárquica é composta por <strong>6 macrocritérios (A a F)</strong> e <strong>23 subcritérios</strong> específicos, conforme diagrama técnico oficial.
+                </div>
+                
+                <h6 class="fw-bold text-dark mb-2">
+                  <i class="bi bi-sliders me-1 text-primary"></i> Dinâmica das Respostas:
+                </h6>
+                <ol class="small text-secondary ps-3 mb-3">
+                  <li><strong>Pergunta 1:</strong> Escolha qual dos dois critérios/subcritérios você considera mais prioritário ou influente.</li>
+                  <li><strong>Pergunta 2:</strong> Indique o grau verbal de superioridade na escala de Saaty (de <em>Igual importância</em> a <em>Extremamente superior</em>).</li>
+                </ol>
 
-        <!-- Seções Recolhíveis de Apoio -->
-        <div class="collapse show mb-3" id="criteriaReferenceCollapse">
-          <div class="card card-body shadow-sm border-0 bg-white">
-            <h6 class="fw-bold text-primary mb-3">
-              <i class="bi bi-diagram-3-fill me-2"></i>Macrocritérios Analisados:
-            </h6>
-            <div class="row g-3">
-              <div class="col-md-6">
-                <div class="criteria-reference-pill criteria-pill-a">
-                  <strong>A. Formação Geológica</strong>
-                  <div class="small text-muted">Profundidade da formação, espessura útil, continuidade lateral e vertical, volume de intercamadas e heterogeneidades.</div>
+                <div class="text-center pt-2">
+                  <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#diagramModal">
+                    <i class="bi bi-diagram-3-fill me-1"></i> Visualizar Árvore de Critérios Completa
+                  </button>
                 </div>
               </div>
-              <div class="col-md-6">
-                <div class="criteria-reference-pill criteria-pill-b">
-                  <strong>B. Reações Química</strong>
-                  <div class="small text-muted">Teor de halita, impurezas insolúveis, sais altamente solúveis / baixa densidade, heterogeneidade composicional.</div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="criteria-reference-pill criteria-pill-c">
-                  <strong>C. Geomecânica da Formação</strong>
-                  <div class="small text-muted">Regime de tensões in situ, distância a falhas e bordas da camada, fraturamento e permeabilidade, gradiente geotermal.</div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="criteria-reference-pill criteria-pill-d">
-                  <strong>D. Características das Intercamadas</strong>
-                  <div class="small text-muted">Continuidade lateral, espessura, fraturamento e permeabilidade, resistência da rocha.</div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="criteria-reference-pill criteria-pill-e">
-                  <strong>E. Rocha selante secundária</strong>
-                  <div class="small text-muted">Continuidade lateral, espessura, fraturamento e permeabilidade, integridade do selo secundário.</div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="criteria-reference-pill criteria-pill-f">
-                  <strong>F. Logística e condições do sítio</strong>
-                  <div class="small text-muted">Distância às fontes de CO₂, infraestrutura de transporte de duto/naval, infraestrutura operacional.</div>
+            </div>
+          </div>
+
+          <!-- Coluna da Direita: Dados Pessoais do Especialista -->
+          <div class="col-lg-6">
+            <div class="card h-100 border-0 shadow-sm bg-white">
+              <div class="card-body p-4">
+                <h5 class="fw-bold text-dark mb-3">
+                  <i class="bi bi-person-lines-fill me-2 text-primary"></i>Dados do Especialista
+                </h5>
+                <p class="text-muted small mb-3">
+                  Preencha seus dados profissionais para registro e confiabilidade das análises paritárias:
+                </p>
+
+                <div class="row g-3">
+                  <div class="col-12">
+                    <label for="evaluatorName" class="form-label fw-semibold small text-dark">
+                      Nome Completo <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                      <span class="input-group-text bg-light text-muted"><i class="bi bi-person"></i></span>
+                      <input type="text" class="form-control" id="evaluatorName" name="name" placeholder="Ex: Dra. Juliana Fernandes" required>
+                    </div>
+                  </div>
+
+                  <div class="col-12">
+                    <label for="evaluatorEmail" class="form-label fw-semibold small text-dark">
+                      E-mail Institucional ou Profissional <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                      <span class="input-group-text bg-light text-muted"><i class="bi bi-envelope"></i></span>
+                      <input type="email" class="form-control" id="evaluatorEmail" name="email" placeholder="seu.email@instituicao.br" required>
+                    </div>
+                  </div>
+
+                  <div class="col-12">
+                    <label for="evaluatorOrg" class="form-label fw-semibold small text-dark">
+                      Instituição / Empresa / Universidade
+                    </label>
+                    <div class="input-group">
+                      <span class="input-group-text bg-light text-muted"><i class="bi bi-building"></i></span>
+                      <input type="text" class="form-control" id="evaluatorOrg" name="instituicao" placeholder="Ex: Petrobras, CENPES, UFRJ, UNICAMP, USP">
+                    </div>
+                  </div>
+
+                  <div class="col-12">
+                    <label for="evaluatorRole" class="form-label fw-semibold small text-dark">
+                      Área de Atuação / Especialidade Principal
+                    </label>
+                    <div class="input-group">
+                      <span class="input-group-text bg-light text-muted"><i class="bi bi-briefcase"></i></span>
+                      <input type="text" class="form-control" id="evaluatorRole" name="area_atuacao" placeholder="Ex: Geomecânica, Estratigrafia, Geoquímica, CCUS">
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="collapse mb-2" id="saatyScaleCollapse">
-          <div class="card card-body shadow-sm border-0 bg-white">
-            <h6 class="fw-bold text-primary mb-2">
-              <i class="bi bi-sliders me-2"></i>Instruções para o Julgamento Paritário:
-            </h6>
-            <ol class="small text-secondary mb-2">
-              <li><strong>Pergunta 1:</strong> Selecione qual dos dois critérios em comparação você julga prioritário ou mais relevante.</li>
-              <li><strong>Pergunta 2:</strong> Selecione o grau verbal de dominância do critério escolhido:
-                <ul class="mt-1 mb-0">
-                  <li><em>Igual importância</em></li>
-                  <li><em>Moderadamente superior</em></li>
-                  <li><em>Superior</em></li>
-                  <li><em>Muito Superior</em></li>
-                  <li><em>Extremamente superior</em></li>
-                </ul>
-              </li>
-            </ol>
-          </div>
+        <!-- Barra de Navegação do Step 1 -->
+        <div class="step-nav-footer d-flex justify-content-end align-items-center">
+          <button type="button" class="btn btn-primary btn-lg px-4 py-2" id="btnNextStep1">
+            Iniciar: Critérios Gerais (A a F) <i class="bi bi-arrow-right ms-2"></i>
+          </button>
         </div>
       </section>
 
       <!-- ====================================================================
-           ETAPA 2: Identificação do Especialista
+           ETAPA 2: Critérios Principais Globais (A a F - 15 Comparações)
            ==================================================================== -->
-      <section class="step-container step-container-evaluator">
+      <section class="step-view step-container step-container-comparisons" id="stepView_2" data-step-index="2">
         <div class="step-header">
           <div class="step-number-badge">2</div>
-          <div>
-            <h4 class="step-title">Etapa 2: Identificação do Especialista</h4>
-            <p class="step-subtitle">Informações para validação acadêmica do painel de especialistas</p>
-          </div>
-        </div>
-
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label for="evaluatorName" class="form-label fw-semibold">Nome Completo *</label>
-            <input type="text" class="form-control" id="evaluatorName" name="name" placeholder="Ex: Dra. Maria Silva" required>
-          </div>
-          <div class="col-md-6">
-            <label for="evaluatorEmail" class="form-label fw-semibold">E-mail Profissional *</label>
-            <input type="email" class="form-control" id="evaluatorEmail" name="email" placeholder="seu.email@instituicao.br" required>
-          </div>
-          <div class="col-md-6">
-            <label for="evaluatorOrg" class="form-label fw-semibold">Instituição / Organização</label>
-            <input type="text" class="form-control" id="evaluatorOrg" name="instituicao" placeholder="Ex: Universidade, Petrobras, ANP">
-          </div>
-          <div class="col-md-6">
-            <label for="evaluatorRole" class="form-label fw-semibold">Área de Atuação / Especialidade</label>
-            <input type="text" class="form-control" id="evaluatorRole" name="area_atuacao" placeholder="Ex: Geomecânica, Estratigrafia, Armazenamento Geológico">
-          </div>
-        </div>
-      </section>
-
-      <!-- ====================================================================
-           ETAPA 3: Avaliações Paritárias Fuzzy-AHP (15 Comparações)
-           ==================================================================== -->
-      <section class="step-container step-container-comparisons">
-        <div class="step-header">
-          <div class="step-number-badge">3</div>
           <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2">
             <div>
-              <h4 class="step-title">Etapa 3: Julgamento Paritário dos Critérios</h4>
-              <p class="step-subtitle">Realize a comparação 1 a 1 para todas as combinações possíveis entre os critérios A a F</p>
+              <h4 class="step-title">Etapa 2: Julgamento dos Critérios Gerais (A a F)</h4>
+              <p class="step-subtitle">Avalie a importância relativa paritária entre os 6 macrocritérios fundamentais</p>
             </div>
-            <span class="badge bg-primary px-3 py-2">Total: 15 comparações</span>
+            <span class="badge bg-primary px-3 py-2">Matriz de 15 Comparações (5 linhas &times; 3 colunas)</span>
           </div>
         </div>
 
-        <!-- Container onde o JavaScript injeta os 15 cards com visual destacado -->
-        <div id="pairwiseComparisonsContainer"></div>
+        <!-- Descrição rápida dos 6 critérios -->
+        <div class="step-intro-card mb-4 p-3 bg-white rounded-3 shadow-sm border">
+          <div class="row g-2 small text-secondary">
+            <div class="col-md-4 col-sm-6"><span class="badge badge-criteria-a me-1">A</span> <strong>Formação Geológica:</strong> Espessura, profundidade, continuidade e volume de intercamadas.</div>
+            <div class="col-md-4 col-sm-6"><span class="badge badge-criteria-b me-1">B</span> <strong>Reações Química:</strong> Pureza de halita, insolúveis, sais altamente solúveis e heterogeneidade.</div>
+            <div class="col-md-4 col-sm-6"><span class="badge badge-criteria-c me-1">C</span> <strong>Geomecânica da Formação:</strong> Tensões in situ, falhas, fraturamento e gradiente geotermal.</div>
+            <div class="col-md-4 col-sm-6"><span class="badge badge-criteria-d me-1">D</span> <strong>Características das Intercamadas:</strong> Continuidade, espessura, fraturas e resistência.</div>
+            <div class="col-md-4 col-sm-6"><span class="badge badge-criteria-e me-1">E</span> <strong>Rocha selante secundária:</strong> Continuidade lateral, espessura, vedação e integridade do selo.</div>
+            <div class="col-md-4 col-sm-6"><span class="badge badge-criteria-f me-1">F</span> <strong>Logística e condições do sítio:</strong> Proximidade a fontes de CO₂, infraestrutura de dutos e apoio.</div>
+          </div>
+        </div>
+
+        <!-- Matriz compacta de cards preenchida via JS -->
+        <div class="comparison-matrix" id="matrixContainer_step_2"></div>
+
+        <!-- Rodapé de Navegação da Etapa 2 com nomes explícitos -->
+        <div class="step-nav-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <button type="button" class="btn btn-outline-secondary px-4 py-2 btn-step-prev" data-target-step="1">
+            <i class="bi bi-arrow-left me-2"></i> Voltar: Dados do Especialista
+          </button>
+          <div class="text-muted small fw-semibold step-completion-indicator" id="stepCompletion_2">
+            0 de 15 respondidas
+          </div>
+          <button type="button" class="btn btn-primary px-4 py-2 btn-step-next" data-target-step="3">
+            Avançar: Subcritérios de Formação Geológica (A) <i class="bi bi-arrow-right ms-2"></i>
+          </button>
+        </div>
       </section>
 
       <!-- ====================================================================
-           ETAPA 4: Comentários Adicionais e Envio
+           ETAPA 3: Subcritérios de A - Formação Geológica (6 Comparações)
            ==================================================================== -->
-      <section class="step-container step-container-finish">
+      <section class="step-view step-container step-container-comparisons" id="stepView_3" data-step-index="3">
         <div class="step-header">
-          <div class="step-number-badge step-number-finish">4</div>
-          <div>
-            <h4 class="step-title">Etapa 4: Comentários e Submissão</h4>
-            <p class="step-subtitle">Observações técnicas opcionais e envio da avaliação</p>
+          <div class="step-number-badge step-badge-a">3</div>
+          <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2">
+            <div>
+              <h4 class="step-title">Etapa 3: Subcritérios de <span class="text-crit-a">A. Formação Geológica</span></h4>
+              <p class="step-subtitle">Compare a relevância entre os 4 subcritérios da formação evaporítica hospedeira</p>
+            </div>
+            <span class="badge badge-criteria-a px-3 py-2">Matriz de 6 Comparações (2 linhas &times; 3 colunas)</span>
           </div>
         </div>
 
+        <div class="step-intro-card mb-4 p-3 bg-white rounded-3 shadow-sm border border-crit-a">
+          <div class="row g-2 small text-secondary">
+            <div class="col-md-6"><strong class="text-crit-a">A1. Profundidade da formação:</strong> Condições termodinâmicas (pressão e temperatura de estocagem) e contenção.</div>
+            <div class="col-md-6"><strong class="text-crit-a">A2. Espessura útil:</strong> Altura da camada salina limpa necessária para acomodar o domo e poço da caverna.</div>
+            <div class="col-md-6"><strong class="text-crit-a">A3. Continuidade lateral e vertical:</strong> Regularidade e persistência dimensional da bacia evaporítica.</div>
+            <div class="col-md-6"><strong class="text-crit-a">A4. Volume de intercamadas e heterogeneidades:</strong> Presença de litologias concorrentes (não-sal) no pacote.</div>
+          </div>
+        </div>
+
+        <div class="comparison-matrix" id="matrixContainer_step_3"></div>
+
+        <div class="step-nav-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <button type="button" class="btn btn-outline-secondary px-4 py-2 btn-step-prev" data-target-step="2">
+            <i class="bi bi-arrow-left me-2"></i> Voltar: Critérios Gerais (A a F)
+          </button>
+          <div class="text-muted small fw-semibold step-completion-indicator" id="stepCompletion_3">
+            0 de 6 respondidas
+          </div>
+          <button type="button" class="btn btn-primary px-4 py-2 btn-step-next" data-target-step="4">
+            Avançar: Subcritérios de Reações Químicas (B) <i class="bi bi-arrow-right ms-2"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           ETAPA 4: Subcritérios de B - Reações Química (6 Comparações)
+           ==================================================================== -->
+      <section class="step-view step-container step-container-comparisons" id="stepView_4" data-step-index="4">
+        <div class="step-header">
+          <div class="step-number-badge step-badge-b">4</div>
+          <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2">
+            <div>
+              <h4 class="step-title">Etapa 4: Subcritérios de <span class="text-crit-b">B. Reações Química</span></h4>
+              <p class="step-subtitle">Compare a relevância entre os 4 subcritérios geoquímicos e mineralógicos</p>
+            </div>
+            <span class="badge badge-criteria-b px-3 py-2">Matriz de 6 Comparações (2 linhas &times; 3 colunas)</span>
+          </div>
+        </div>
+
+        <div class="step-intro-card mb-4 p-3 bg-white rounded-3 shadow-sm border border-crit-b">
+          <div class="row g-2 small text-secondary">
+            <div class="col-md-6"><strong class="text-crit-b">B1. Teor de halita:</strong> Grau de concentração de NaCl para lixiviação uniforme e paredes estáveis.</div>
+            <div class="col-md-6"><strong class="text-crit-b">B2. Impurezas insolúveis:</strong> Resíduos de anidrita e argilominerais que acumulam no fundo e obstruem poços.</div>
+            <div class="col-md-6"><strong class="text-crit-b">B3. Sais altamente solúveis / baixa densidade:</strong> Minerais deliquescentes (carnalita, taquidrita) com risco de colapso rápido.</div>
+            <div class="col-md-6"><strong class="text-crit-b">B4. Heterogeneidade composicional:</strong> Desvios composicionais rápidos que prejudicam a modelagem da cavidade.</div>
+          </div>
+        </div>
+
+        <div class="comparison-matrix" id="matrixContainer_step_4"></div>
+
+        <div class="step-nav-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <button type="button" class="btn btn-outline-secondary px-4 py-2 btn-step-prev" data-target-step="3">
+            <i class="bi bi-arrow-left me-2"></i> Voltar: Subcritérios de Formação Geológica (A)
+          </button>
+          <div class="text-muted small fw-semibold step-completion-indicator" id="stepCompletion_4">
+            0 de 6 respondidas
+          </div>
+          <button type="button" class="btn btn-primary px-4 py-2 btn-step-next" data-target-step="5">
+            Avançar: Subcritérios de Geomecânica (C) <i class="bi bi-arrow-right ms-2"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           ETAPA 5: Subcritérios de C - Geomecânica da Formação (6 Comparações)
+           ==================================================================== -->
+      <section class="step-view step-container step-container-comparisons" id="stepView_5" data-step-index="5">
+        <div class="step-header">
+          <div class="step-number-badge step-badge-c">5</div>
+          <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2">
+            <div>
+              <h4 class="step-title">Etapa 5: Subcritérios de <span class="text-crit-c">C. Geomecânica da Formação</span></h4>
+              <p class="step-subtitle">Compare a relevância entre os 4 subcritérios de estabilidade e tensões geomecânicas</p>
+            </div>
+            <span class="badge badge-criteria-c px-3 py-2">Matriz de 6 Comparações (2 linhas &times; 3 colunas)</span>
+          </div>
+        </div>
+
+        <div class="step-intro-card mb-4 p-3 bg-white rounded-3 shadow-sm border border-crit-c">
+          <div class="row g-2 small text-secondary">
+            <div class="col-md-6"><strong class="text-crit-c">C1. Regime de tensões in situ:</strong> Magnitude das tensões principais e anisotropia de esforços na rocha.</div>
+            <div class="col-md-6"><strong class="text-crit-c">C2. Distância a falhas e bordas da camada:</strong> Margem de segurança estrutural em relação a falhas geológicas.</div>
+            <div class="col-md-6"><strong class="text-crit-c">C3. Fraturamento e permeabilidade:</strong> Integridade do maciço contra rotas de escape do CO₂ estocado.</div>
+            <div class="col-md-6"><strong class="text-crit-c">C4. Gradiente geotermal e influência da temperatura:</strong> Efeito térmico na fluência (creep) e deformação ao longo do tempo.</div>
+          </div>
+        </div>
+
+        <div class="comparison-matrix" id="matrixContainer_step_5"></div>
+
+        <div class="step-nav-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <button type="button" class="btn btn-outline-secondary px-4 py-2 btn-step-prev" data-target-step="4">
+            <i class="bi bi-arrow-left me-2"></i> Voltar: Subcritérios de Reações Químicas (B)
+          </button>
+          <div class="text-muted small fw-semibold step-completion-indicator" id="stepCompletion_5">
+            0 de 6 respondidas
+          </div>
+          <button type="button" class="btn btn-primary px-4 py-2 btn-step-next" data-target-step="6">
+            Avançar: Subcritérios de Intercamadas (D) <i class="bi bi-arrow-right ms-2"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           ETAPA 6: Subcritérios de D - Características das Intercamadas (6 Comparações)
+           ==================================================================== -->
+      <section class="step-view step-container step-container-comparisons" id="stepView_6" data-step-index="6">
+        <div class="step-header">
+          <div class="step-number-badge step-badge-d">6</div>
+          <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2">
+            <div>
+              <h4 class="step-title">Etapa 6: Subcritérios de <span class="text-crit-d">D. Características das Intercamadas</span></h4>
+              <p class="step-subtitle">Compare a relevância entre os 4 subcritérios das camadas interestratificadas</p>
+            </div>
+            <span class="badge badge-criteria-d px-3 py-2">Matriz de 6 Comparações (2 linhas &times; 3 colunas)</span>
+          </div>
+        </div>
+
+        <div class="step-intro-card mb-4 p-3 bg-white rounded-3 shadow-sm border border-crit-d">
+          <div class="row g-2 small text-secondary">
+            <div class="col-md-6"><strong class="text-crit-d">D1. Continuidade lateral:</strong> Extensão contínua das bandas de anidrita/folhelho através da cavidade.</div>
+            <div class="col-md-6"><strong class="text-crit-d">D2. Espessura:</strong> Altura vertical das camadas intercaladas e sua interferência no volume útil.</div>
+            <div class="col-md-6"><strong class="text-crit-d">D3. Fraturamento e permeabilidade:</strong> Potencial de circulação de fluidos ou delaminação nas interfaces.</div>
+            <div class="col-md-6"><strong class="text-crit-d">D4. Resistência da rocha:</strong> Rigidez e comportamento competente das camadas duras em meio ao sal plástico.</div>
+          </div>
+        </div>
+
+        <div class="comparison-matrix" id="matrixContainer_step_6"></div>
+
+        <div class="step-nav-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <button type="button" class="btn btn-outline-secondary px-4 py-2 btn-step-prev" data-target-step="5">
+            <i class="bi bi-arrow-left me-2"></i> Voltar: Subcritérios de Geomecânica (C)
+          </button>
+          <div class="text-muted small fw-semibold step-completion-indicator" id="stepCompletion_6">
+            0 de 6 respondidas
+          </div>
+          <button type="button" class="btn btn-primary px-4 py-2 btn-step-next" data-target-step="7">
+            Avançar: Subcritérios de Rocha Selante (E) <i class="bi bi-arrow-right ms-2"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           ETAPA 7: Subcritérios de E - Rocha selante secundária (6 Comparações)
+           ==================================================================== -->
+      <section class="step-view step-container step-container-comparisons" id="stepView_7" data-step-index="7">
+        <div class="step-header">
+          <div class="step-number-badge step-badge-e">7</div>
+          <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2">
+            <div>
+              <h4 class="step-title">Etapa 7: Subcritérios de <span class="text-crit-e">E. Rocha selante secundária</span></h4>
+              <p class="step-subtitle">Compare a relevância entre os 4 subcritérios do capeamento e selo secundário de segurança</p>
+            </div>
+            <span class="badge badge-criteria-e px-3 py-2">Matriz de 6 Comparações (2 linhas &times; 3 colunas)</span>
+          </div>
+        </div>
+
+        <div class="step-intro-card mb-4 p-3 bg-white rounded-3 shadow-sm border border-crit-e">
+          <div class="row g-2 small text-secondary">
+            <div class="col-md-6"><strong class="text-crit-e">E1. Continuidade lateral:</strong> Extensão sem descontinuidades da formação impermeável acima do sal.</div>
+            <div class="col-md-6"><strong class="text-crit-e">E2. Espessura:</strong> Volume protetor total do selo contra migração vertical de gás.</div>
+            <div class="col-md-6"><strong class="text-crit-e">E3. Fraturamento e permeabilidade:</strong> Capacidade de retenção e vedação estanque a pressões elevadas.</div>
+            <div class="col-md-6"><strong class="text-crit-e">E4. Resistência da rocha:</strong> Suporte mecânico a variações no estado de deformação da bacia.</div>
+          </div>
+        </div>
+
+        <div class="comparison-matrix" id="matrixContainer_step_7"></div>
+
+        <div class="step-nav-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <button type="button" class="btn btn-outline-secondary px-4 py-2 btn-step-prev" data-target-step="6">
+            <i class="bi bi-arrow-left me-2"></i> Voltar: Subcritérios de Intercamadas (D)
+          </button>
+          <div class="text-muted small fw-semibold step-completion-indicator" id="stepCompletion_7">
+            0 de 6 respondidas
+          </div>
+          <button type="button" class="btn btn-primary px-4 py-2 btn-step-next" data-target-step="8">
+            Avançar: Subcritérios de Logística e Sítio (F) <i class="bi bi-arrow-right ms-2"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           ETAPA 8: Subcritérios de F - Logística e condições do sítio (3 Comparações)
+           ==================================================================== -->
+      <section class="step-view step-container step-container-comparisons" id="stepView_8" data-step-index="8">
+        <div class="step-header">
+          <div class="step-number-badge step-badge-f">8</div>
+          <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2">
+            <div>
+              <h4 class="step-title">Etapa 8: Subcritérios de <span class="text-crit-f">F. Logística e condições do sítio</span></h4>
+              <p class="step-subtitle">Compare a relevância entre os 3 subcritérios logísticos e infraestruturais</p>
+            </div>
+            <span class="badge badge-criteria-f px-3 py-2">Matriz de 3 Comparações (1 linha &times; 3 colunas)</span>
+          </div>
+        </div>
+
+        <div class="step-intro-card mb-4 p-3 bg-white rounded-3 shadow-sm border border-crit-f">
+          <div class="row g-2 small text-secondary">
+            <div class="col-md-4"><strong class="text-crit-f">F1. Distância às fontes de CO₂:</strong> Proximidade a emissores industriais para redução de custos de transporte.</div>
+            <div class="col-md-4"><strong class="text-crit-f">F2. Infraestrutura de transporte:</strong> Existência de redes de gasodutos dedicados, rodovias ou portos.</div>
+            <div class="col-md-4"><strong class="text-crit-f">F3. Infraestrutura para construção/operação:</strong> Acesso a água fresca para lavra por dissolução, energia e descarte seguro de salmoura.</div>
+          </div>
+        </div>
+
+        <div class="comparison-matrix" id="matrixContainer_step_8"></div>
+
+        <div class="step-nav-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <button type="button" class="btn btn-outline-secondary px-4 py-2 btn-step-prev" data-target-step="7">
+            <i class="bi bi-arrow-left me-2"></i> Voltar: Subcritérios de Rocha Selante (E)
+          </button>
+          <div class="text-muted small fw-semibold step-completion-indicator" id="stepCompletion_8">
+            0 de 3 respondidas
+          </div>
+          <button type="button" class="btn btn-primary px-4 py-2 btn-step-next" data-target-step="9">
+            Avançar: Revisão Geral e Envio <i class="bi bi-arrow-right ms-2"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           ETAPA 9: Revisão das Respostas, Comentários & Submissão
+           ==================================================================== -->
+      <section class="step-view step-container step-container-finish" id="stepView_9" data-step-index="9">
+        <div class="step-header">
+          <div class="step-number-badge step-number-finish">9</div>
+          <div>
+            <h4 class="step-title">Etapa 9: Revisão Geral, Observações & Submissão</h4>
+            <p class="step-subtitle">Confirme o preenchimento integral das análises e envie suas avaliações</p>
+          </div>
+        </div>
+
+        <!-- Painel de Resumo do Especialista e Status por Grupo -->
+        <div class="row g-3 mb-4">
+          <div class="col-lg-5">
+            <div class="card h-100 border-0 shadow-sm bg-light-subtle">
+              <div class="card-body p-3">
+                <h6 class="fw-bold text-dark mb-2">
+                  <i class="bi bi-person-check-fill me-1 text-primary"></i> Identificação Confirmada:
+                </h6>
+                <div class="small text-secondary mb-1">
+                  <strong>Especialista:</strong> <span id="summaryName" class="text-dark">Não informado</span>
+                </div>
+                <div class="small text-secondary mb-1">
+                  <strong>E-mail:</strong> <span id="summaryEmail" class="text-dark">Não informado</span>
+                </div>
+                <div class="small text-secondary mb-1">
+                  <strong>Instituição:</strong> <span id="summaryOrg" class="text-dark">-</span>
+                </div>
+                <div class="small text-secondary">
+                  <strong>Área / Especialidade:</strong> <span id="summaryRole" class="text-dark">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-7">
+            <div class="card h-100 border-0 shadow-sm bg-white">
+              <div class="card-body p-3">
+                <h6 class="fw-bold text-dark mb-2">
+                  <i class="bi bi-check-all me-1 text-success"></i> Status das Comparações Paritárias:
+                </h6>
+                <div class="row g-2 small" id="summaryGroupsStatus">
+                  <!-- Injetado dinamicamente com status de cada step -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Observações e Comentários Adicionais -->
         <div class="mb-4">
           <label for="evaluatorNotes" class="form-label fw-semibold text-dark">
-            Comentários ou Justificativas Adicionais (Opcional):
+            Comentários Técnicos ou Justificativas Adicionais (Opcional):
           </label>
           <textarea class="form-control" 
                     id="evaluatorNotes" 
                     name="message" 
                     rows="3" 
-                    placeholder="Adicione considerações sobre particularidades geológicas, limitações ou observações que julgar relevantes..."></textarea>
+                    placeholder="Adicione considerações sobre peculiaridades de bacias evaporíticas brasileiras, limitações operacionais ou ponderações qualitativas..."></textarea>
         </div>
 
-        <div class="text-center pt-2">
-          <button type="submit" id="submitBtn" class="btn btn-success btn-lg px-5 py-3 shadow">
-            <i class="bi bi-send-fill me-2"></i> Enviar Avaliações
+        <!-- Botões de Ação Final -->
+        <div class="step-nav-footer d-flex justify-content-between align-items-center flex-wrap gap-3 pt-2">
+          <button type="button" class="btn btn-outline-secondary px-4 py-2 btn-step-prev" data-target-step="8">
+            <i class="bi bi-arrow-left me-2"></i> Voltar: Subcritérios de Logística e Sítio (F)
           </button>
-          <div class="text-muted small mt-2">
-            Os dados serão enviados de forma íntegra em formato textual.
+
+          <div class="text-end">
+            <button type="submit" id="submitBtn" class="btn btn-success btn-lg px-5 py-3 shadow">
+              <i class="bi bi-send-fill me-2"></i> Enviar Todas as Avaliações
+            </button>
+            <div class="text-muted small mt-1">
+              Todos os julgamentos serão enviados com integridade metodológica.
+            </div>
           </div>
         </div>
       </section>
@@ -249,12 +565,75 @@
 
   <!-- Rodapé -->
   <footer class="text-center py-4 text-muted small">
-    <div class="container">
-      Pesquisa Científica &bull; Fuzzy-AHP para Armazenamento de CO₂ em Cavernas de Sal &bull; Critérios A a F
+    <div class="container-fluid">
+      Pesquisa Científica &bull; Fuzzy-AHP para Seleção de Cavernas de Sal &bull; Armazenamento de Carbono (CCUS) &bull; Critérios A a F e Subcritérios
     </div>
   </footer>
 
-  <!-- Modal de Sucesso -->
+  <!-- Modal 1: Diagrama da Hierarquia Completa dos Critérios -->
+  <div class="modal fade" id="diagramModal" tabindex="-1" aria-labelledby="diagramModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-dark text-white">
+          <h5 class="modal-title" id="diagramModalLabel">
+            <i class="bi bi-diagram-3-fill me-2 text-info"></i> Modelo Hierárquico dos Critérios (Fuzzy-AHP)
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body text-center p-4">
+          <div class="mb-3">
+            <img src="img/hierarquia_criterios.png" 
+                 alt="Hierarquia dos Critérios e Subcritérios para Seleção de Sítios de Cavernas de Sal" 
+                 class="img-fluid rounded border shadow-sm modal-diagram-img">
+          </div>
+          <p class="text-muted small mt-2">
+            Diagrama hierárquico com o Objetivo Central no topo, desdobrado em 6 Critérios Principais (A a F) e seus respectivos Subcritérios para a avaliação multicritério.
+          </p>
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fechar Visualização</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Guia da Escala Verbal de Saaty -->
+  <div class="modal fade" id="saatyScaleModal" tabindex="-1" aria-labelledby="saatyScaleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="saatyScaleModalLabel">
+            <i class="bi bi-card-checklist me-2"></i> Guia da Escala de Julgamento Paritário
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body p-4">
+          <p class="text-secondary small mb-3">
+            No método AHP / Fuzzy-AHP, os especialistas realizam comparações 1 a 1 entre pares de critérios ou subcritérios. O julgamento é efetuado em duas etapas sequenciais:
+          </p>
+          <div class="card border-0 bg-light p-3 mb-3">
+            <h6 class="fw-bold text-dark mb-2">1. Escolha do Critério Dominante:</h6>
+            <p class="small text-secondary mb-0">Indique qual dos dois elementos em análise exerce maior impacto ou relevância para o objetivo.</p>
+          </div>
+          <div class="card border-0 bg-light p-3 mb-3">
+            <h6 class="fw-bold text-dark mb-2">2. Intensidade da Preferência (Escala Verbal):</h6>
+            <ul class="small text-secondary mb-0 ps-3">
+              <li><strong>Igual importância:</strong> Ambos os critérios contribuem igualmente para o objetivo.</li>
+              <li><strong>Moderadamente superior:</strong> A experiência e o julgamento favorecem ligeiramente um critério sobre o outro.</li>
+              <li><strong>Superior:</strong> A experiência e o julgamento favorecem fortemente um critério sobre o outro.</li>
+              <li><strong>Muito Superior:</strong> Um critério é muito fortemente favorecido, com relevância preponderante demonstrável na prática.</li>
+              <li><strong>Extremamente superior:</strong> A evidência que favorece um critério em relação ao outro é da mais alta ordem de afirmação possível.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Entendido</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Sucesso de Envio -->
   <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content border-0 shadow">
@@ -262,12 +641,51 @@
           <div class="text-success mb-3 modal-success-icon">
             <i class="bi bi-check-circle-fill"></i>
           </div>
-          <h3 class="fw-bold mb-3" id="successModalLabel">Respostas Enviadas com Sucesso!</h3>
+          <h3 class="fw-bold mb-3" id="successModalLabel">Avaliações Enviadas com Sucesso!</h3>
           <p class="text-muted mb-4">
-            Seus julgamentos paritários foram registrados com sucesso. Agradecemos imensamente por sua valiosa contribuição nesta pesquisa sobre armazenamento geológico de CO₂ em cavernas de sal.
+            Seus julgamentos paritários para todos os critérios e subcritérios foram registrados com êxito. Agradecemos profundamente por sua valiosa contribuição nesta pesquisa sobre armazenamento geológico de CO₂ em cavernas de sal.
           </p>
           <button type="button" class="btn btn-success px-4 py-2" onclick="location.reload();">
             <i class="bi bi-arrow-repeat me-1"></i> Preencher Nova Avaliação
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Confirmação de Reset de Progresso da LocalStorage -->
+  <div class="modal fade" id="resetConfirmModal" tabindex="-1" aria-labelledby="resetConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title" id="resetConfirmModalLabel">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> Confirmação para Resetar Questionário
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body p-4 text-center">
+          <div class="text-danger mb-3 modal-danger-icon">
+            <i class="bi bi-trash3-fill"></i>
+          </div>
+          <h5 class="fw-bold text-dark mb-2">Tem certeza de que deseja resetar todo o questionário?</h5>
+          <p class="text-secondary small mb-3">
+            Esta operação irá <strong>excluir permanentemente todos os dados gravados no Local Storage</strong> deste navegador:
+          </p>
+          <ul class="text-start small text-secondary mb-3 ps-4">
+            <li>Dados pessoais do especialista (Nome, E-mail, Instituição e Área).</li>
+            <li>Todas as 48 comparações paritárias já respondidas nos critérios e subcritérios.</li>
+            <li>Observações técnicas e comentários adicionais.</li>
+          </ul>
+          <div class="alert alert-warning border-0 py-2 px-3 small text-dark mb-0 text-start">
+            <i class="bi bi-info-circle-fill text-warning me-1"></i> Após confirmar, o formulário será redefinido para o estado inicial na <strong>Etapa 1</strong>. Esta ação não poderá ser desfeita.
+          </div>
+        </div>
+        <div class="modal-footer bg-light d-flex justify-content-between">
+          <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">
+            <i class="bi bi-x-circle me-1"></i> Cancelar e Manter Dados
+          </button>
+          <button type="button" class="btn btn-danger px-4" id="confirmResetBtn">
+            <i class="bi bi-trash3-fill me-1"></i> Sim, Confirmar e Resetar
           </button>
         </div>
       </div>
@@ -278,8 +696,9 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <!-- jQuery (opcional/compatibilidade) -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <!-- Lógica da Pesquisa Fuzzy-AHP -->
+  <!-- Definições dos Critérios, Subcritérios e Escala -->
   <script src="js/criteria.js"></script>
+  <!-- Lógica da Aplicação, Wizard de Steps e Renderização em Matriz -->
   <script src="js/app.js"></script>
 </body>
 </html>
