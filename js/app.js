@@ -91,12 +91,13 @@ document.addEventListener("DOMContentLoaded", function () {
         const targetStep = parseInt(this.getAttribute("data-step-index"), 10);
         if (targetStep === currentStep) return;
 
-        // Se estiver avançando além da etapa atual, valida a etapa atual
-        if (targetStep > currentStep) {
-          const isValid = validateStep(currentStep);
-          if (!isValid) return;
+        // O usuário precisa responder a etapa 1 antes de avançar para as demais
+        if (targetStep > 1 && !validateEvaluatorData()) {
+          goToStep(1);
+          return;
         }
 
+        // Navegação livre entre as etapas 2 a 9 (ordem não fixada)
         goToStep(targetStep);
       });
     });
@@ -141,15 +142,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
           <!-- Corpo Compacto do Card -->
           <div class="criteria-card-body">
-            <!-- Título do Par em Análise -->
-            <div class="pair-card-title d-flex align-items-center justify-content-between">
-              <span>
-                <span class="badge badge-criteria-${themeCode1}">${crit1.code}</span>
-                <span class="text-muted mx-1">vs</span>
-                <span class="badge badge-criteria-${themeCode2}">${crit2.code}</span>
-              </span>
-            </div>
-
             <!-- Pergunta 1: Rádios Seletores Compactos -->
             <div>
               <div class="pair-card-subtitle">1. Qual critério é mais relevante?</div>
@@ -353,7 +345,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const btnNextStep1 = document.getElementById("btnNextStep1");
     if (btnNextStep1) {
       btnNextStep1.addEventListener("click", function () {
-        if (validateStep(1)) {
+        if (validateEvaluatorData()) {
           goToStep(2);
         }
       });
@@ -364,9 +356,15 @@ document.addEventListener("DOMContentLoaded", function () {
     nextButtons.forEach((btn) => {
       btn.addEventListener("click", function () {
         const target = parseInt(this.getAttribute("data-target-step"), 10);
-        if (validateStep(currentStep)) {
-          goToStep(target);
+
+        // O usuário precisa responder a etapa 1 antes de avançar para as demais
+        if (target > 1 && !validateEvaluatorData()) {
+          goToStep(1);
+          return;
         }
+
+        // Navegação livre entre etapas 2 a 9 (não fixa a ordem)
+        goToStep(target);
       });
     });
 
@@ -379,87 +377,104 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
 
-    // Submissão do formulário
+    // Submissão do formulário: exige 100% de todas as etapas anteriores respondidas
     if (form) {
       form.addEventListener("submit", function (e) {
         e.preventDefault();
 
-        // 1. Validação do Especialista (Etapa 1)
-        if (!validateStep(1)) {
+        // 1. Validação obrigatória da Etapa 1 (Especialista)
+        if (!validateEvaluatorData()) {
           goToStep(1);
+          highlightStepError(1, 6000);
           return;
         }
 
-        // 2. Validação de todas as etapas de comparação (2 a 8)
+        // 2. Validação obrigatória de todas as etapas de comparação (2 a 8) para envio
+        let firstIncompleteStep = null;
+        let firstIncompletePair = null;
+        let totalMissing = 0;
+        const incompleteStepIndexes = [];
+
         for (let s = 2; s <= 8; s++) {
-          if (!validateStep(s)) {
-            goToStep(s);
-            return;
+          const stepDef = SURVEY_STEPS.find((item) => item.stepIndex === s);
+          if (stepDef && stepDef.type === "comparisons" && Array.isArray(stepDef.pairs)) {
+            const missingInStep = stepDef.pairs.filter((pair) => {
+              const radioChecked = document.querySelector(`input[name="mais_importante_${pair.pairKey}"]:checked`);
+              const select = document.getElementById(`select_intensidade_${pair.pairKey}`);
+              return !radioChecked || !select || !select.value;
+            });
+
+            if (missingInStep.length > 0) {
+              totalMissing += missingInStep.length;
+              incompleteStepIndexes.push(s);
+              if (!firstIncompleteStep) {
+                firstIncompleteStep = stepDef;
+                firstIncompletePair = missingInStep[0];
+              }
+            }
           }
         }
 
-        // Tudo 100% preenchido -> Realizar envio
+        // Se houver qualquer comparação pendente em qualquer etapa
+        if (firstIncompleteStep && firstIncompletePair) {
+          // Destaca com contornos vermelhos os botões de step com respostas faltantes por 6 segundos
+          incompleteStepIndexes.forEach((stepIdx) => {
+            highlightStepError(stepIdx, 6000);
+          });
+
+          goToStep(firstIncompleteStep.stepIndex);
+
+          const cardElement = document.getElementById(`card_${firstIncompletePair.pairKey}`);
+          showAlert(
+            `Para submeter o questionário, é obrigatório responder todas as etapas anteriores. Faltam respostas na <strong>Etapa ${firstIncompleteStep.stepIndex}: ${firstIncompleteStep.title}</strong> (Total pendente: ${totalMissing} comparação(ões)).`,
+            "danger"
+          );
+
+          if (cardElement) {
+            cardElement.scrollIntoView({ behavior: "smooth", block: "center" });
+            cardElement.classList.add("highlight-invalid-card");
+            setTimeout(() => cardElement.classList.remove("highlight-invalid-card"), 6000);
+          }
+          return;
+        }
+
+        // Todas as etapas foram 100% respondidas -> Enviar
         submitSurveyForm(form);
       });
     }
   }
 
   /**
-   * Valida uma etapa específica antes de avançar
+   * Aplica contorno vermelho no step com respostas pendentes durante 6 segundos
    */
-  function validateStep(stepIndex) {
+  function highlightStepError(stepIndex, duration = 6000) {
+    const pill = document.getElementById(`stepperPill_${stepIndex}`);
+    if (pill) {
+      pill.classList.add("step-error-outline");
+      setTimeout(() => {
+        pill.classList.remove("step-error-outline");
+      }, duration);
+    }
+  }
+
+  /**
+   * Valida obrigatoriamente os dados do especialista (Etapa 1)
+   */
+  function validateEvaluatorData() {
     clearAlert();
+    const nameInput = document.getElementById("evaluatorName");
+    const emailInput = document.getElementById("evaluatorEmail");
 
-    // Etapa 1: Dados do Especialista
-    if (stepIndex === 1) {
-      const nameInput = document.getElementById("evaluatorName");
-      const emailInput = document.getElementById("evaluatorEmail");
-
-      if (!nameInput || !nameInput.value.trim()) {
-        showAlert("Por favor, preencha seu <strong>Nome Completo</strong> para continuar.", "warning");
-        if (nameInput) nameInput.focus();
-        return false;
-      }
-
-      if (!emailInput || !emailInput.value.trim() || !validateEmailFormat(emailInput.value.trim())) {
-        showAlert("Por favor, preencha um <strong>E-mail válido</strong> institucional ou profissional.", "warning");
-        if (emailInput) emailInput.focus();
-        return false;
-      }
-
-      return true;
+    if (!nameInput || !nameInput.value.trim()) {
+      showAlert("Por favor, preencha seu <strong>Nome Completo</strong> na Etapa 1 antes de prosseguir.", "warning");
+      if (nameInput) nameInput.focus();
+      return false;
     }
 
-    // Etapas 2 a 8: Comparações Paritárias
-    const stepDef = SURVEY_STEPS.find((s) => s.stepIndex === stepIndex);
-    if (stepDef && stepDef.type === "comparisons" && Array.isArray(stepDef.pairs)) {
-      const incompletePair = stepDef.pairs.find((pair) => {
-        const radioChecked = document.querySelector(`input[name="mais_importante_${pair.pairKey}"]:checked`);
-        const select = document.getElementById(`select_intensidade_${pair.pairKey}`);
-        return !radioChecked || !select || !select.value;
-      });
-
-      if (incompletePair) {
-        const missingCount = stepDef.pairs.filter((pair) => {
-          const radioChecked = document.querySelector(`input[name="mais_importante_${pair.pairKey}"]:checked`);
-          const select = document.getElementById(`select_intensidade_${pair.pairKey}`);
-          return !radioChecked || !select || !select.value;
-        }).length;
-
-        const cardElement = document.getElementById(`card_${incompletePair.pairKey}`);
-        showAlert(
-          `Atenção: A <strong>Etapa ${stepIndex} (${stepDef.title})</strong> possui <strong>${missingCount} comparação(ões) pendente(s)</strong>. Complete todas para avançar.`,
-          "danger"
-        );
-
-        if (cardElement) {
-          cardElement.scrollIntoView({ behavior: "smooth", block: "center" });
-          cardElement.classList.add("highlight-invalid-card");
-          setTimeout(() => cardElement.classList.remove("highlight-invalid-card"), 3000);
-        }
-
-        return false;
-      }
+    if (!emailInput || !emailInput.value.trim() || !validateEmailFormat(emailInput.value.trim())) {
+      showAlert("Por favor, preencha um <strong>E-mail válido</strong> institucional ou profissional na Etapa 1 antes de prosseguir.", "warning");
+      if (emailInput) emailInput.focus();
+      return false;
     }
 
     return true;
@@ -635,15 +650,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
           html += `
             <div class="col-md-6 mb-2">
-              <div class="p-2 border rounded bg-light-subtle d-flex justify-content-between align-items-center">
-                <span class="text-truncate me-2 fw-semibold text-dark">${step.navTitle}:</span>
+              <button type="button" class="btn w-100 p-2 border rounded bg-light-subtle d-flex justify-content-between align-items-center review-step-btn text-start shadow-none" data-target-step="${step.stepIndex}" title="Clique para navegar até a análise de ${step.navTitle}">
+                <span class="text-truncate me-2 fw-semibold text-dark">
+                  <span class="badge ${step.badgeClass || 'bg-secondary'} me-1">${step.codeBadge}</span>
+                  ${step.navTitle}
+                </span>
                 <span class="badge ${badgeClass}">${icon}${answered}/${totalPairs}</span>
-              </div>
+              </button>
             </div>
           `;
         }
       });
       summaryGroupsStatus.innerHTML = html;
+
+      // Listener para navegação direta a partir do resumo
+      const reviewBtns = summaryGroupsStatus.querySelectorAll(".review-step-btn");
+      reviewBtns.forEach((btn) => {
+        btn.addEventListener("click", function () {
+          const stepTarget = parseInt(this.getAttribute("data-target-step"), 10);
+          if (stepTarget) {
+            goToStep(stepTarget);
+          }
+        });
+      });
     }
   }
 
